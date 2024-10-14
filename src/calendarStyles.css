@@ -1,0 +1,12 @@
+#myCal {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+  }
+  
+  /* You can also adjust specific parts of the calendar if needed */
+  .color-calendar .calendar-header,
+  .color-calendar .calendar-body,
+  .color-calendar .calendar-day {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+  }
