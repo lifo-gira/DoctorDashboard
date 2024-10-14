@@ -1,6 +1,7 @@
 import logo from "./logo.svg";
 import "./App.css";
 import Dashboard from "./Dashboard";
+import Schedule from "./Schedule";
 import Sample from "./Sample";
 
 function App() {
@@ -167,7 +168,7 @@ function App() {
         </div>
       </div>
       <div className="w-[93%] h-[98%] my-auto mr-1.5 bg-[#F8F8F8] rounded-l-[50px] overflow-hidden">
-        <Dashboard />
+        <Schedule />
       </div>
     </div>
   );
