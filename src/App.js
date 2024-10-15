@@ -1,15 +1,34 @@
+import React, { useState } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import Dashboard from "./Dashboard";
 import Schedule from "./Schedule";
+import RegimeBuilder from "./RegimeBuilder";
 import Sample from "./Sample";
 
 function App() {
+  const [activeComponent, setActiveComponent] = useState("regimeBuilder");
+
+  const renderComponent = () => {
+    switch (activeComponent) {
+      case "dashboard":
+        return <Dashboard />;
+      case "schedule":
+        return <Schedule />;
+      case "regimeBuilder":
+        return <RegimeBuilder />;
+      case "sample":
+        return <Sample />;
+      default:
+        return <RegimeBuilder />;
+    }
+  };
+  
   return (
     <div className="flex h-screen bg-[#7075DB]">
       <div className="w-[7%] h-full flex justify-center items-center">
         <div className="w-full h-[65%] flex flex-col items-center gap-10">
-          <button>
+          <button onClick={() => setActiveComponent("dashboard")}>
             <svg
               width="31"
               height="32"
@@ -35,7 +54,7 @@ function App() {
               </defs>
             </svg>
           </button>
-          <button>
+          <button onClick={() => setActiveComponent("schedule")}>
             <svg
               width="31"
               height="32"
@@ -61,7 +80,7 @@ function App() {
               </defs>
             </svg>
           </button>
-          <button>
+          <button onClick={() => setActiveComponent("dashboard")}>
             <svg
               width="31"
               height="32"
@@ -87,7 +106,7 @@ function App() {
               </defs>
             </svg>
           </button>
-          <button>
+          <button onClick={() => setActiveComponent("RegimeBuilder")}>
             <svg
               width="31"
               height="32"
@@ -113,7 +132,7 @@ function App() {
               </defs>
             </svg>
           </button>
-          <button>
+          <button onClick={() => setActiveComponent("dashboard")}>
             <svg
               width="33"
               height="33"
@@ -139,7 +158,7 @@ function App() {
               </defs>
             </svg>
           </button>
-          <button>
+          <button onClick={() => setActiveComponent("dashboard")}>
             <svg
               width="31"
               height="31"
@@ -168,7 +187,7 @@ function App() {
         </div>
       </div>
       <div className="w-[93%] h-[98%] my-auto mr-1.5 bg-[#F8F8F8] rounded-l-[50px] overflow-hidden">
-        <Schedule />
+      {renderComponent()}
       </div>
     </div>
   );
