@@ -1,21 +1,43 @@
 import React, { useState, useEffect } from "react";
-import "./Regimebuilder.css"
+import "./Regimebuilder.css";
 import Porfileimg from "./Assets/profile.png";
 import User from "./Assets/user.png";
+import Pushup from "./Assets/pushup.png";
 import {
   ChevronRightIcon,
   ArrowUpRightIcon,
   ChevronDownIcon,
+  PlusIcon,
 } from "@heroicons/react/16/solid";
 
 const RegimeBuilder = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isOpens, setIsOpens] = useState(false);
   const [selectedItems, setSelectedItems] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   const exercises = ["Exercise 1", "Exercise 2", "Exercise 3"];
+  const exercisecategory = ["Endurance", "Flexibility", "Agility"];
   const handleSelectItem = (exercise) => {
     setSelectedItems(exercise);
     setIsOpen(false); // Optionally close dropdown after selection
   };
+  const handleSelectItems = (exercise) => {
+    setSelectedItem(exercise);
+    setIsOpens(false); // Optionally close dropdown after selection
+  };
+
+  const exerciseslist = [
+    { name: "Push Up", rep: 10, set: 3, image: "pushup-image-path" },
+    { name: "Squat", rep: 15, set: 4, image: "squat-image-path" },
+    { name: "Lunge", rep: 12, set: 3, image: "lunge-image-path" },
+    { name: "Plank", rep: 5, set: 2, image: "plank-image-path" },
+    { name: "Burpees", rep: 20, set: 4, image: "burpees-image-path" },
+    { name: "Push Up", rep: 10, set: 3, image: "pushup-image-path" },
+    { name: "Squat", rep: 15, set: 4, image: "squat-image-path" },
+    { name: "Lunge", rep: 12, set: 3, image: "lunge-image-path" },
+    { name: "Plank", rep: 5, set: 2, image: "plank-image-path" },
+    { name: "Burpees", rep: 20, set: 4, image: "burpees-image-path" },
+  ];
 
   return (
     <div className="w-full h-full">
@@ -154,10 +176,11 @@ const RegimeBuilder = () => {
                 </div>
               </div>
               {isOpen && (
-                <div className={`absolute mt-2 bg-white p-4 rounded-lg shadow-lg w-[40%] transition-all duration-300 ease-in-out ${
-                    isOpen ? 'max-h-[200px] opacity-100' : 'max-h-0 opacity-0'
+                <div
+                  className={`absolute mt-2 bg-white p-4 rounded-lg shadow-lg w-[40%] transition-all duration-300 ease-in-out font-poppins ${
+                    isOpen ? "max-h-[200px] opacity-100" : "max-h-0 opacity-0"
                   } overflow-hidden`}
-                  >
+                >
                   <ul>
                     {exercises.map((exercise, index) => (
                       <li
@@ -176,7 +199,122 @@ const RegimeBuilder = () => {
             </div>
           </div>
         </div>
-        <div className="w-full h-[80%] bg-blue-gray-700"></div>
+        <div className="w-full h-[80%] ">
+          <div className="w-[50%] ml-5 mt-4 relative">
+            <div className="flex flex-row gap-2">
+              <div
+                className="flex justify-between items-center bg-[#E0E0FF] rounded-lg px-4 py-2 cursor-pointer gap-4 w-[40%] font-poppins"
+                onClick={() => setIsOpens(!isOpens)}
+              >
+                <p className="font-poppins font-medium text-black text-sm">
+                  {selectedItem ? `${selectedItem}` : "Exercise Category"}
+                </p>
+                <ChevronDownIcon
+                  className={`h-5 w-5 text-[#9CA3AF] transition-transform duration-300 ${
+                    isOpens ? "rotate-180" : ""
+                  }`}
+                />
+              </div>
+            </div>
+            {isOpens && (
+              <div
+                className={`absolute mt-2 bg-white p-4 rounded-lg shadow-lg w-[40%] transition-all duration-300 ease-in-out font-poppins ${
+                  isOpens ? "max-h-[200px] opacity-100" : "max-h-0 opacity-0"
+                } overflow-hidden`}
+              >
+                <ul>
+                  {exercisecategory.map((exercise, index) => (
+                    <li
+                      key={index}
+                      className={`py-1 cursor-pointer ${
+                        selectedItem === exercise ? "font-medium" : ""
+                      }`}
+                      onClick={() => handleSelectItems(exercise)}
+                    >
+                      {exercise}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          <div className="mt-5 grid grid-cols-3 gap-6 ml-5 w-[98%] h-[85%] overflow-hidden overflow-y-auto scrollbar-custom">
+            {exerciseslist.map((exercise, index) => (
+              <div
+                key={index}
+                className="bg-white shadow-lg rounded-lg p-3 flex items-center space-x-4 w-96"
+              >
+                <div className="flex flex-col justify-between w-full">
+                  <div className="text-lg text-[#475467] font-semibold font-poppins flex flex-row justify-between items-center w-full">
+                    <p>Push Up</p>
+                    <div className="flex flex-row gap-4">
+                      <button>
+                        <PlusIcon className="w-5 h-5 text-green-400"/>
+                      </button>
+                      <button>
+                        <svg
+                          width="22"
+                          height="21"
+                          viewBox="0 0 22 21"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M1.83203 1.75H20.1654V3.5H19.2487V15.75H13.2115L16.8782 19.25L15.582 20.4872L10.9987 16.1122L6.41536 20.4872L5.1192 19.25L8.78586 15.75H2.7487V3.5H1.83203V1.75ZM4.58203 3.5V14H17.4154V3.5H4.58203ZM9.16536 5.6875L13.4434 8.75L9.16536 11.8125V5.6875Z"
+                            fill="#475467"
+                            fill-opacity="0.5"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex mt-4 space-x-4  font-poppins items-end justify-between w-full">
+                    <div className="flex flex-row gap-4">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-sm font-semibold text-[#475467]">
+                          REP
+                        </span>
+                        <div className="flex flex-row justify-between">
+                          <input
+                            type="number"
+                            //value={set}
+                            //onChange={(e) => setSet(parseInt(e.target.value))}
+                            className="bg-[#FFA7EC] text-[#475467] rounded-lg px-2 py-1 text-sm font-semibold w-14"
+                            min="0"
+                            placeholder="00"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-sm font-semibold text-[#475467]">
+                          SET
+                        </span>
+                        <div className="flex flex-row ">
+                          <input
+                            type="number"
+                            //value={set}
+                            //onChange={(e) => setSet(parseInt(e.target.value))}
+                            className="bg-blue-200 text-[#475467] rounded-lg px-2 py-1 text-sm font-semibold w-14"
+                            min="0"
+                            placeholder="00"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className=" flex justify-end">
+                      <img
+                        src={Pushup}
+                        alt="Exercise demo"
+                        className="w-[90%] h-auto object-cover"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

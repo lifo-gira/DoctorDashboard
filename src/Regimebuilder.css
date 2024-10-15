@@ -16,3 +16,18 @@
   opacity: 0;
   transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
 }
+
+/* In your global CSS file (e.g., styles/globals.css or tailwind.css) */
+.scrollbar-custom::-webkit-scrollbar {
+  width: 8px; /* Set the width of the scrollbar */
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: #f0f0f0; /* Track color */
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background-color: #C2C2FF; /* Scrollbar thumb color */
+  border-radius: 10px; /* Rounded corners */
+  border: 2px solid #f0f0f0; /* Border color around the scrollbar thumb */
+}
