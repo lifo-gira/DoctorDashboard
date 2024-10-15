@@ -30,6 +30,48 @@ const Dashboard = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [flagMinusOneCount, setFlagMinusOneCount] = useState(0);
+  const [flagZeroCount, setFlagZeroCount] = useState(0);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          "https://api-wo6.onrender.com/patient-details/all"
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await response.json();
+        // Convert schedule_start_date to Date objects for each patient
+
+        setPatients(data);
+        setLoading(false);
+
+        // Count occurrences of flag == -1 and flag == 0
+        const minusOneCount = data.filter(
+          (patient) => patient.flag === -1
+        ).length;
+        const zeroCount = data.filter(
+          (patient) => patient.flag === 0
+        ).length;
+
+        setFlagMinusOneCount(minusOneCount);
+        setFlagZeroCount(zeroCount);
+
+        console.log("Processed patient data:", data); // Log fetched and processed data
+      } catch (error) {
+        console.error("Error fetching patient information:", error);
+        setLoading(true);
+      }
+    };
+
+    fetchData();
+  }, []);
+  
   return (
     <div className="w-full h-full">
       <div className="flex w-[95%] mx-auto mt-4">
@@ -129,7 +171,7 @@ const Dashboard = () => {
                 </div>
                 <div className="flex flex-row justify-between items-center">
                   <div className="text-3xl font-poppins font-medium text-black">
-                    64
+                    {flagMinusOneCount}
                   </div>
                   <div className="bg-blue-100 rounded-lg p-2">
                     <UserIcon className="h-8 w-8 text-blue-400" />
@@ -142,7 +184,7 @@ const Dashboard = () => {
                 </div>
                 <div className="flex flex-row justify-between items-center">
                   <div className="text-3xl font-poppins font-medium text-black">
-                    64
+                    {flagZeroCount}
                   </div>
                   <div className="bg-red-100 rounded-lg p-2">
                     <UserIcon className="h-8 w-8 text-red-400" />
@@ -165,46 +207,39 @@ const Dashboard = () => {
                 <ChevronRightIcon className="w-4 h-4 text-cyan-300" />
               </div>
             </div>
-            <div className="w-full bg-[#F3F0FF] rounded-lg flex flex-row justify-between items-center my-1 py-2 px-3 mt-6">
-              <div className={`w-3/6`}>
-                <div className={`flex flex-row gap-4 py-0 px-2 items-center`}>
-                  <img
-                    className="w-10 h-10 rounded-full"
-                    src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
-                    alt="tania andrew"
-                  />
-                  <div className="flex w-full flex-col">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[#475467] font-poppins font-medium text-base">
-                        Inbasekar
-                      </p>
-                    </div>
-                    <p className="text-start font-poppins font-medium text-sm text-[#475467]">
-                      25,Male
-                    </p>
-                  </div>
+            
+            {patients.map((patient) => (
+        <div
+          key={patient._id}
+          className="w-full bg-[#F3F0FF] rounded-lg flex flex-row justify-between items-center my-1 py-2 px-3 mt-6"
+        >
+          <div className="w-3/6">
+            <div className="flex flex-row gap-4 py-0 px-2 items-center">
+              <img
+                className="w-10 h-10 rounded-full"
+                src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
+                alt={patient.user_id}
+              />
+              <div className="flex w-full flex-col">
+                <div className="flex items-center justify-between">
+                  <p className="text-[#475467] font-poppins font-medium text-base">
+                    {patient.user_id}
+                  </p>
                 </div>
+                <p className="text-start font-poppins font-medium text-sm text-[#475467]">
+                  {patient.PersonalDetails.Age}, {patient.PersonalDetails.Gender}
+                </p>
               </div>
-              <div
-                className={`w-1/6 text-sm font-normal font-poppins text-[#475467]`}
-              >
-                ID: #12345
+            </div>
+          </div>
+          <div className="w-1/6 text-sm font-normal font-poppins text-[#475467]">
+            ID: {patient.unique_id}
+          </div>
+          <div className="w-2/6 flex flex-row justify-between items-center">
+            <div className="flex flex-row gap-1 items-center justify-end w-1/3">
+              <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
+                Report
               </div>
-              <div
-                className={`w-2/6  flex flex-row  justify-between items-center`}
-              >
-                <div
-                  className={` rounded-lg py-0.5 font-medium text-sm  w-2/3 flex justify-center `}
-                ></div>
-                <div
-                  className={`flex flex-row gap-1 items-center justify-end w-1/3 `}
-                >
-                  <div
-                    className={`text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer`}
-                    //onClick={() => onReportClick(item.patient_id)}
-                  >
-                    Report
-                  </div>
                   <ArrowUpRightIcon
                     color="blue"
                     className="w-4 h-4 cursor-pointer"
@@ -212,6 +247,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+            ))}
           </div>
         </div>
         <div className="w-[45%] bg-slate-300">

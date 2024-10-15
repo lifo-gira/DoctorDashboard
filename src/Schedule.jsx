@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,useEffect } from "react";
 import Porfileimg from "./Assets/profile.png";
 import {
   ChevronRightIcon,
   ArrowUpRightIcon,
-  PhoneIcon,
-} from "@heroicons/react/16/solid";
+  PhoneIcon
+} from "@heroicons/react/16/solid"; 
 import {
   LineChart,
   Line,
@@ -17,7 +17,52 @@ import {
 } from "recharts";
 import { PieChart, Pie, Cell } from "recharts";
 import { AreaChart, Area } from "recharts";
+
 const Schedule = () => {
+
+  const [patients, setPatients] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          "https://api-wo6.onrender.com/patient-details/all"
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await response.json();
+        // Convert schedule_start_date to Date objects for each patient
+
+        setPatients(data);
+
+        // Count occurrences of flag == -1 and flag == 0
+        const minusOneCount = data.filter(
+          (patient) => patient.flag === -1
+        ).length;
+        const zeroCount = data.filter(
+          (patient) => patient.flag === 0
+        ).length;
+
+        console.log("Processed patient data:", data); // Log fetched and processed data
+      } catch (error) {
+        console.error("Error fetching patient information:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const findNearestEventDate = (eventDates) => {
+    const today = new Date();
+    const futureDates = eventDates
+      .map(date => new Date(date))
+      .filter(date => date >= today); // Filter dates that are today or in the future
+  
+    // Sort dates and return the nearest one, if available
+    return futureDates.length > 0 ? futureDates.sort((a, b) => a - b)[0] : null;
+  };
+
   const data = [
     {
       name: "Page A",
@@ -115,10 +160,16 @@ const Schedule = () => {
       amt: 2100,
     },
   ];
+  
+  const [selectedPatient, setSelectedPatient] = useState(null);
+
+  const handlePatientClick = (patient) => {
+    setSelectedPatient(patient);
+  };
 
   return (
     <div className="w-full h-full">
-      <div className="flex w-[95%] mx-auto mt-4">
+            <div className="flex w-[95%] mx-auto mt-4">
         <div className="flex w-[60%]  h-full">
           <div className="w-5/6 bg-gray-200 rounded-xl px-4 py-2 flex items-center">
             <input
@@ -193,97 +244,108 @@ const Schedule = () => {
           <p className="text-black text-lg font-poppins font-semibold">
             Patients Assigned
           </p>
-          <div className="w-full bg-white rounded-lg flex flex-row justify-between items-center my-1 py-2 px-3 mt-6">
-            <div className={`w-3/6`}>
-              <div className={`flex flex-row gap-4 py-0 px-2 items-center`}>
-                <img
-                  className="w-10 h-10 rounded-full"
-                  src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
-                  alt="tania andrew"
-                />
-                <div className="flex w-full flex-col">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[#475467] font-poppins font-medium text-base">
-                      Inbasekar
+          {patients.map((patient) => (
+            <div
+              key={patient.id}
+              className="w-full bg-white rounded-lg flex flex-row justify-between items-center my-1 py-2 px-3 mt-6 cursor-pointer"
+              onClick={() => handlePatientClick(patient)}
+            >
+              <div className="w-3/6">
+                <div className="flex flex-row gap-4 py-0 px-2 items-center">
+                  <img
+                    className="w-10 h-10 rounded-full"
+                    src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
+                    alt={patient.user_id}
+                  />
+                  <div className="flex w-full flex-col">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[#475467] font-poppins font-medium text-base">
+                        {patient.user_id}
+                      </p>
+                    </div>
+                    <p className="text-start font-poppins font-medium text-sm text-[#475467]">
+                    {patient.PersonalDetails.Age}, {patient.PersonalDetails.Gender}
                     </p>
                   </div>
-                  <p className="text-start font-poppins font-medium text-sm text-[#475467]">
-                    25,Male
-                  </p>
+                </div>
+              </div>
+              <div className="w-1/6 text-sm font-normal font-poppins text-[#475467]">
+                ID: #{patient.unique_id}
+              </div>
+              <div className="w-2/6 flex flex-row justify-between items-center">
+                <div className="rounded-lg py-0.5 font-medium text-sm w-2/3 flex justify-center"></div>
+                <div className="flex flex-row gap-1 items-center justify-end w-1/3">
+                  <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
+                    Report
+                  </div>
+                  <ArrowUpRightIcon
+                    color="blue"
+                    className="w-4 h-4 cursor-pointer"
+                  />
                 </div>
               </div>
             </div>
-            <div
-              className={`w-1/6 text-sm font-normal font-poppins text-[#475467]`}
-            >
-              ID: #12345
-            </div>
-            <div
-              className={`w-2/6  flex flex-row  justify-between items-center`}
-            >
-              <div
-                className={` rounded-lg py-0.5 font-medium text-sm  w-2/3 flex justify-center `}
-              ></div>
-              <div
-                className={`flex flex-row gap-1 items-center justify-end w-1/3 `}
-              >
-                <div
-                  className={`text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer`}
-                  //onClick={() => onReportClick(item.patient_id)}
-                >
-                  Report
-                </div>
-                <ArrowUpRightIcon
-                  color="blue"
-                  className="w-4 h-4 cursor-pointer"
-                />
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
         <div className="w-[30%] h-full mx-auto">
-          <div className="w-full h-[28%]">
-            <p className="text-[#475467] text-lg font-poppins font-medium">
-              Patients Details
-            </p>
-            <div className="w-[100%] flex flex-col mt-2 bg-white rounded-lg py-2 gap-4">
-              <div className="w-full flex flex-row gap-3 px-4">
-                <img
-                  className="w-10 h-10 rounded-full"
-                  src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
-                  alt="tania andrew"
-                />
-                <div className="flex w-full flex-col">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[#7075DB] font-poppins font-medium text-base">
-                      Inbasekar
-                    </p>
+          {selectedPatient ? (
+            <>
+              <div className="w-full h-[28%]">
+                <p className="text-[#475467] text-lg font-poppins font-medium">
+                  Patients Details
+                </p>
+                <div className="w-[100%] flex flex-col mt-2 bg-white rounded-lg py-2 gap-4">
+                  <div className="w-full flex flex-row gap-3 px-4">
+                    <img
+                      className="w-10 h-10 rounded-full"
+                      src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
+                      alt={selectedPatient.user_id}
+                    />
+                    <div className="flex w-full flex-col">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[#7075DB] font-poppins font-medium text-base">
+                          {selectedPatient.user_id}
+                        </p>
+                      </div>
+                      <p className="text-start font-poppins font-normal text-sm opacity-50 text-[#475467]">
+                      {selectedPatient.PersonalDetails.Age}, {selectedPatient.PersonalDetails.Gender}
+                      </p>
+                    </div>
+                    <button>
+                    <PhoneIcon className="w-4 h-4" />
+                    </button>
                   </div>
-                  <p className="text-start font-poppins font-normal text-sm opacity-50 text-[#475467]">
-                    25, Male
-                  </p>
+                  <div className="h-[1px] w-full opacity-15 bg-[#475467]"></div>
+                  <div className="w-full flex flex-row px-4 justify-between">
+                    <p className="text-[#475467] text-xs font-poppins font-normal italic flex flex-row gap-1">
+                      Diagnosis :
+                      <p className="text-black font-medium">
+                        {selectedPatient.PersonalDetails.pain_indication.map(
+                          (report, index) => (
+                            <div key={index}>
+                              {report && (
+                                <div>
+                                  <span>{report}</span>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        )}
+                      </p>
+                    </p>
+                    {selectedPatient.events_date.length > 0 && (
+          <p className="text-[#475467] opacity-50 text-xs font-poppins font-medium flex flex-col gap-1 justify-end items-end">
+             Event: {findNearestEventDate(selectedPatient.events_date) ? new Date(findNearestEventDate(selectedPatient.events_date)).toLocaleDateString() : "No upcoming events"}
+          </p>
+        )}
+                  </div>
                 </div>
-                <button>
-                  <PhoneIcon className="w-4 h-4" />
-                </button>
               </div>
-              <div className="h-[1px] w-full opacity-15 bg-[#475467]"></div>
-              <div className="w-full flex flex-row px-4 justify-between">
-                <p className="text-[#475467] text-xs font-poppins font-normal italic flex flex-row gap-1">
-                  Diagonisis :
-                  <p className="text-black font-medium">Left Knee pain </p>
+              <div className="w-full h-[72%]">
+                <p className="text-black text-lg font-poppins font-medium">
+                  Dashboard
                 </p>
-                <p className="text-[#475467] opacity-50 text-xs font-poppins font-medium flex flex-col gap-1 justify-end items-end">
-                  12 Jan , 2024 <p className="font-normal"> 12:20 IST</p>
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="w-full h-[72%]">
-            <p className="text-black text-lg font-poppins font-medium">
-              Dashboard
-            </p>
-            <div className="w-full h-full flex flex-col gap-3">
+                <div className="w-full h-full flex flex-col gap-3">
               <div className="w-full h-[45%] flex flex-row">
                 <div className="w-[50%] h-full flex flex-col justify-center bg-white rounded-xl mr-4">
                   <p className="text-[#202224] text-sm font-poppins font-medium px-2">
@@ -433,7 +495,11 @@ const Schedule = () => {
                 </ResponsiveContainer>
               </div>
             </div>
-          </div>
+              </div>
+            </>
+          ) : (
+            <p className="text-center text-gray-500">Select a patient to view details.</p>
+          )}
         </div>
       </div>
     </div>
