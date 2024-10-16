@@ -31,3 +31,92 @@
   border-radius: 10px; /* Rounded corners */
   border: 2px solid #f0f0f0; /* Border color around the scrollbar thumb */
 }
+
+.scrollbar-custom1::-webkit-scrollbar {
+  width: 4px; /* Set the width of the scrollbar track */
+  height: 6px; /* Set the height of the scrollbar track */
+}
+
+.scrollbar-custom1::-webkit-scrollbar-track {
+  background: #374151; /* Track color */
+}
+
+.scrollbar-custom3::-webkit-scrollbar-thumb {
+  background-color: #C2C2FF; /* Scrollbar thumb color */
+  border-radius: 10px; /* Rounded corners */
+  width: 2px; /* Thumb width */
+  height: 20px; /* Thumb height */
+}
+
+.scrollbar-custom3::-webkit-scrollbar {
+  width: 8px; /* Set the width of the scrollbar track */
+  height: 6px; /* Set the height of the scrollbar track */
+}
+
+.scrollbar-custom3::-webkit-scrollbar-track {
+  background: #374151; /* Track color */
+}
+
+.scrollbar-custom1::-webkit-scrollbar-thumb {
+  background-color: #C2C2FF; /* Scrollbar thumb color */
+  border-radius: 10px; /* Rounded corners */
+  width: 2px; /* Thumb width */
+  height: 20px; /* Thumb height */
+}
+
+/* Hide scrollbar but allow scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* for Chrome, Safari, and Opera */
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;  /* for Internet Explorer, Edge */
+  scrollbar-width: none;  /* for Firefox */
+}
+
+.scrollbar-custom2::-webkit-scrollbar {
+  width: 12px; /* Set the width of the scrollbar */
+}
+
+.scrollbar-custom2::-webkit-scrollbar-track {
+  background: #fff; /* Track color */
+}
+
+.scrollbar-custom2::-webkit-scrollbar-thumb {
+  background-color: #C2C2FF; /* Scrollbar thumb color */
+  border-radius: 10px; /* Rounded corners */
+  border: 2px solid #f0f0f0; /* Border color around the scrollbar thumb */
+}
+
+@keyframes slide-in {
+  0% {
+    transform: translate(30%, 30%) scale(0.6); /* Start off-screen and slightly smaller */
+    opacity: 0; /* Initially hidden */
+  }
+  100% {
+    transform: translate(0, 0) scale(1); /* Move to its original position and normal size */
+    opacity: 1; /* Fully visible */
+  }
+}
+
+.popup {
+  animation: slide-in 0.8s ease forwards; /* Animation for sliding in */
+  position: fixed; /* Keep it fixed */
+  z-index: 50; /* Ensure it stays on top */
+  opacity: 0; /* Initially hidden */
+  transform: translate(30%, 30%) scale(0.8); /* Start off-screen and slightly smaller */
+}
+
+.popup-open {
+  opacity: 1; /* Fully visible */
+  transform: translate(0, 0) scale(1); /* Move to its original position and normal size */
+}
+
+
+
+
+
+
+
+
+

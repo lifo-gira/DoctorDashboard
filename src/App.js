@@ -7,7 +7,7 @@ import RegimeBuilder from "./RegimeBuilder";
 import Sample from "./Sample";
 
 function App() {
-  const [activeComponent, setActiveComponent] = useState("regimeBuilder");
+  const [activeComponent, setActiveComponent] = useState("dashboard");
 
   const renderComponent = () => {
     switch (activeComponent) {
