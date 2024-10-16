@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Porfileimg from "./Assets/profile.png";
 import Maindb from "./Assets/maindb.png";
 import Leg from "./Assets/leg.png";
@@ -30,9 +30,12 @@ const Dashboard = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [closestEvent, setClosestEvent] = useState(null);
 
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState(""); // Search query
   const [flagMinusOneCount, setFlagMinusOneCount] = useState(0);
   const [flagZeroCount, setFlagZeroCount] = useState(0);
 
@@ -46,7 +49,6 @@ const Dashboard = () => {
           throw new Error("Failed to fetch data");
         }
         const data = await response.json();
-        // Convert schedule_start_date to Date objects for each patient
 
         setPatients(data);
         setLoading(false);
@@ -55,12 +57,51 @@ const Dashboard = () => {
         const minusOneCount = data.filter(
           (patient) => patient.flag === -1
         ).length;
-        const zeroCount = data.filter(
-          (patient) => patient.flag === 0
-        ).length;
+        const zeroCount = data.filter((patient) => patient.flag === 0).length;
 
         setFlagMinusOneCount(minusOneCount);
         setFlagZeroCount(zeroCount);
+
+        const now = new Date(); // Get current date
+        let closest = null;
+
+        // Find the closest upcoming event
+        data.forEach((patient) => {
+          patient.events_date.forEach((dateStr) => {
+            const dateMatch = dateStr.match(/\(([^)]+)\)/);
+            if (!dateMatch) return; // Skip if no match
+
+            const dateParts = dateMatch[1].split(",").map(Number);
+            // Construct the event date in UTC
+            const eventDate = new Date(
+              Date.UTC(
+                dateParts[0],
+                dateParts[1] - 1,
+                dateParts[2],
+                dateParts[3],
+                dateParts[4]
+              )
+            ); // Use UTC hours and minutes
+
+            console.log(`Checking event date: ${eventDate.toISOString()}`); // Log the event date
+            console.log(`Current date: ${now.toISOString()}`); // Log the current date
+
+            // Check if the event is in the future
+            if (eventDate >= now) {
+              // If there's no closest event or the current event is closer, update closest
+              if (!closest || eventDate < closest.eventDate) {
+                closest = {
+                  patientId: patient.patient_id,
+                  uniqueId: patient.user_id,
+                  eventDate: eventDate.toISOString(), // Store as ISO string for display
+                };
+                console.log(`Found closer event: ${closest.eventDate}`); // Log found closest event
+              }
+            }
+          });
+        });
+
+        setClosestEvent(closest); // Set the closest event
 
         console.log("Processed patient data:", data); // Log fetched and processed data
       } catch (error) {
@@ -71,31 +112,91 @@ const Dashboard = () => {
 
     fetchData();
   }, []);
-  
+
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const closeDropdown = () => setDropdownOpen(false);
+
+  // Handle clicks outside the dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        closeDropdown();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const filteredPatients = searchQuery
+    ? patients.filter((patient) =>
+        patient.user_id.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : [];
+
   return (
     <div className="w-full h-full">
       <div className="flex w-[95%] mx-auto mt-4">
-        <div className="flex w-[60%]  h-full">
-          <div className="w-5/6 bg-gray-200 rounded-xl px-4 py-2 flex items-center">
-            <input
-              className="bg-transparent w-full outline-none text-gray-600"
-              type="text"
-              placeholder="Search"
-            />
-            <button className="focus:outline-none ml-2">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M15.228 14.1777L17.7282 16.6766C17.8447 16.7973 17.9093 16.959 17.9078 17.1268C17.9063 17.2947 17.839 17.4552 17.7204 17.5739C17.6017 17.6925 17.4411 17.7599 17.2733 17.7613C17.1055 17.7628 16.9438 17.6983 16.8231 17.5817L14.3229 15.0815C12.6891 16.4813 10.5766 17.1939 8.42878 17.0697C6.28092 16.9456 4.26463 15.9943 2.803 14.4156C1.34138 12.8369 0.548028 10.7534 0.589434 8.60235C0.63084 6.4513 1.50378 4.3999 3.02508 2.8786C4.54638 1.3573 6.59779 0.484355 8.74883 0.442949C10.8999 0.401543 12.9834 1.19489 14.5621 2.65652C16.1408 4.11815 17.092 6.13444 17.2162 8.2823C17.3404 10.4302 16.6278 12.5426 15.228 14.1764V14.1777ZM8.90908 15.8035C10.7764 15.8035 12.5673 15.0617 13.8878 13.7413C15.2082 12.4209 15.95 10.63 15.95 8.7626C15.95 6.89523 15.2082 5.10434 13.8878 3.78392C12.5673 2.46349 10.7764 1.72168 8.90908 1.72168C7.04171 1.72168 5.25083 2.46349 3.9304 3.78392C2.60997 5.10434 1.86816 6.89523 1.86816 8.7626C1.86816 10.63 2.60997 12.4209 3.9304 13.7413C5.25083 15.0617 7.04171 15.8035 8.90908 15.8035Z"
-                  fill="#A2A3A4"
-                />
-              </svg>
-            </button>
+        <div className="flex w-[60%] h-full">
+        <div className="relative w-full">
+            {/* Search Input */}
+            <div className="w-full bg-gray-200 rounded-xl px-4 py-2 flex items-center">
+              <input
+                className="bg-transparent w-full outline-none text-gray-600 py-2"
+                type="text"
+                placeholder="Search by user ID"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchQuery(searchQuery)} // Keep dropdown open on focus
+              />
+              <button className="focus:outline-none ml-2">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15.228 14.1777L17.7282 16.6766C17.8447 16.7973 17.9093 16.959 17.9078 17.1268C17.9063 17.2947 17.839 17.4552 17.7204 17.5739C17.6017 17.6925 17.4411 17.7599 17.2733 17.7613C17.1055 17.7628 16.9438 17.6983 16.8231 17.5817L14.3229 15.0815C12.6891 16.4813 10.5766 17.1939 8.42878 17.0697C6.28092 16.9456 4.26463 15.9943 2.803 14.4156C1.34138 12.8369 0.548028 10.7534 0.589434 8.60235C0.63084 6.4513 1.50378 4.3999 3.02508 2.8786C4.54638 1.3573 6.59779 0.484355 8.74883 0.442949C10.8999 0.401543 12.9834 1.19489 14.5621 2.65652C16.1408 4.11815 17.092 6.13444 17.2162 8.2823C17.3404 10.4302 16.6278 12.5426 15.228 14.1764V14.1777ZM8.90908 15.8035C10.7764 15.8035 12.5673 15.0617 13.8878 13.7413C15.2082 12.4209 15.95 10.63 15.95 8.7626C15.95 6.89523 15.2082 5.10434 13.8878 3.78392C12.5673 2.46349 10.7764 1.72168 8.90908 1.72168C7.04171 1.72168 5.25083 2.46349 3.9304 3.78392C2.60997 5.10434 1.86816 6.89523 1.86816 8.7626C1.86816 10.63 2.60997 12.4209 3.9304 13.7413C5.25083 15.0617 7.04171 15.8035 8.90908 15.8035Z"
+                    fill="#A2A3A4"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Dropdown for filtered patients */}
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              searchQuery && (
+                <div
+                  ref={dropdownRef}
+                  className="absolute z-10 w-full bg-white shadow-lg mt-1 rounded-lg max-h-60 overflow-y-auto"
+                >
+                  {filteredPatients.length > 0 ? (
+                    filteredPatients.map((patient) => (
+                      <div
+                        key={patient._id}
+                        className="p-2 border-b hover:bg-gray-200 cursor-pointer"
+                        onClick={() => {
+                          setSearchQuery(""); // Clear search query after selection
+                          closeDropdown(); // Close dropdown after selection
+                        }}
+                      >
+                        <p>{patient.user_id}</p>
+                        {/* You can add more patient details here */}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="p-2 text-gray-600">No results found.</p>
+                  )}
+                </div>
+              )
+            )}
           </div>
         </div>
         <div className="flex items-center justify-end w-[40%]">
@@ -207,46 +308,65 @@ const Dashboard = () => {
                 <ChevronRightIcon className="w-4 h-4 text-cyan-300" />
               </div>
             </div>
-            
             {patients.map((patient) => (
-        <div
-          key={patient._id}
-          className="w-full bg-[#F3F0FF] rounded-lg flex flex-row justify-between items-center my-1 py-2 px-3 mt-6"
-        >
-          <div className="w-3/6">
-            <div className="flex flex-row gap-4 py-0 px-2 items-center">
-              <img
-                className="w-10 h-10 rounded-full"
-                src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
-                alt={patient.user_id}
-              />
-              <div className="flex w-full flex-col">
-                <div className="flex items-center justify-between">
-                  <p className="text-[#475467] font-poppins font-medium text-base">
-                    {patient.user_id}
-                  </p>
+              <div
+                key={patient._id}
+                className="w-full bg-[#F3F0FF] rounded-lg flex flex-row justify-between items-center my-1 py-2 px-3 mt-6"
+              >
+                <div className="w-3/6">
+                  <div className="flex flex-row gap-4 py-0 px-2 items-center">
+                    <img
+                      className="w-10 h-10 rounded-full"
+                      src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
+                      alt={patient.user_id}
+                    />
+                    <div className="flex w-full flex-col">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[#475467] font-poppins font-medium text-base">
+                          {patient.user_id}
+                        </p>
+                      </div>
+                      <p className="text-start font-poppins font-medium text-sm text-[#475467]">
+                        {patient.PersonalDetails.Age},{" "}
+                        {patient.PersonalDetails.Gender}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-start font-poppins font-medium text-sm text-[#475467]">
-                  {patient.PersonalDetails.Age}, {patient.PersonalDetails.Gender}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="w-1/6 text-sm font-normal font-poppins text-[#475467]">
-            ID: {patient.unique_id}
-          </div>
-          <div className="w-2/6 flex flex-row justify-between items-center">
-            <div className="flex flex-row gap-1 items-center justify-end w-1/3">
-              <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
-                Report
-              </div>
-                  <ArrowUpRightIcon
-                    color="blue"
-                    className="w-4 h-4 cursor-pointer"
-                  />
+
+                <div className="w-1/6 text-sm font-normal font-poppins text-[#475467] text-center">
+                  ID: {patient.unique_id}
+                </div>
+
+                {/* Updated Additional Info Section */}
+                <div className="w-1/6">
+                  <div className="bg-[#BAE5F6] text-[#0D3CB7] rounded-lg px-2 py-1 text-sm text-center">
+                  {patient.PersonalDetails.pain_indication.map(
+                          (report, index) => (
+                            <div key={index}>
+                              {report && (
+                                <div>
+                                  <span>{report}</span>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        )}
+                  </div>
+                </div>
+
+                <div className="w-1/6 flex flex-row justify-end items-center">
+                  <div className="flex flex-row gap-1 items-center">
+                    <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
+                      Report
+                    </div>
+                    <ArrowUpRightIcon
+                      color="blue"
+                      className="w-4 h-4 cursor-pointer"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
             ))}
           </div>
         </div>
@@ -276,21 +396,35 @@ const Dashboard = () => {
               <div className="flex flex-row justify-center mt-4">
                 <div className={`w-full`}>
                   <div className={`flex flex-col gap-3 py-0 px-2 items-center`}>
-                    <img
-                      className="w-10 h-10 rounded-full"
-                      src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
-                      alt="tania andrew"
-                    />
-                    <div className="flex w-full flex-col gap-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-black font-poppins font-medium text-base">
-                          Check Up with Patient
-                        </p>
+                    {closestEvent ? (
+                      <div className={`flex flex-col gap-3`}>
+                        <img
+                          className="w-10 h-10 rounded-full"
+                          src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
+                          alt="Patient"
+                        />
+                        <div className="flex w-full flex-col gap-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-black font-poppins font-medium text-base">
+                              Check Up with Patient {closestEvent.uniqueId}
+                            </p>
+                          </div>
+                          <p className="text-start font-poppins font-medium text-sm text-[#0D0D0D] opacity-50 gap-2 flex flex-row">
+                            <p>{closestEvent.eventDate.split("T")[0]}</p> |{" "}
+                            <p>
+                              {new Date(
+                                closestEvent.eventDate
+                              ).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-start font-poppins font-medium text-sm text-[#0D0D0D] opacity-50 gap-2 flex flex-row">
-                        <p>8th April 2024</p> | <p>4.00 PM</p>
-                      </p>
-                    </div>
+                    ) : (
+                      <p>No upcoming events.</p>
+                    )}
                   </div>
                 </div>
               </div>
