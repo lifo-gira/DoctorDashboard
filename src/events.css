@@ -1,0 +1,154 @@
+.event-green {
+    background-color: #e0f7e9; /* Light green */
+    border: 1px solid #29a744;
+    color: #29a744;
+  }
+  
+  .event-orange {
+    background-color: #ffe9d6; /* Light orange */
+    border: 1px solid #ff5733;
+    color: #ff5733;
+  }
+  
+  .event-yellow {
+    background-color: #fff9d6; /* Light yellow */
+    border: 1px solid #ffcc00;
+    color: #ffcc00;
+  }
+  
+  .event-avatar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .event-avatar img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+
+  .custom-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #7075DB; /* Purple background */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-family: "Poppins", sans-serif;
+  }
+  
+  .custom-toolbar button {
+    background-color: white;
+    color: #6d55f8; /* Purple text color */
+    border: none;
+    border-radius: 20px;
+    padding: 5px 15px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .fb {
+    background-color: white;
+    color: #6d55f8; /* Purple text color */
+    border: none;
+    border-radius: 100%;
+    padding: 7px 15px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 18px;
+  }
+  
+  .custom-toolbar button:hover {
+    background-color: #f0eefc; /* Lighter hover effect */
+  }
+  
+  .custom-toolbar .date-display {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  
+  .custom-toolbar .view-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .custom-toolbar .view-buttons {
+    background-color: #f0eefc;
+    color: #6d55f8;
+    padding: 5px 10px;
+    border-radius: 10%;
+  }
+  
+  .custom-toolbar .view-buttons button.active {
+    background-color: white;
+    font-weight: bold;
+  }
+  
+  .custom-toolbar button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(109, 85, 248, 0.3);
+  }
+
+  .cursor-pointer.active {
+    font-weight: bold; /* Make text bold when active */
+    background-color: white; /* Change background to white when active */
+  }
+
+/* Ensure the calendar cells are flexible and adjust based on content */
+.rbc-event {
+  min-height: 80px; /* Ensure minimum height is consistent */
+  max-height: 200px; /* Set max height before scrolling */
+  display: flex;
+  width: auto !important; /* Allow width to expand based on content */
+  max-width: 100%; /* Prevent the width from exceeding the parent */
+  /* overflow-y: auto; Enable vertical scrolling when content overflows */
+}
+
+/* Ensure the event content is scrollable */
+.rbc-event-content {
+  white-space: normal; /* Allow text to wrap */
+  overflow: hidden;
+  max-height: 100px; /* Set a reasonable height for content */
+  /* overflow-y: auto; Enable scrolling for content if it exceeds height */
+}
+
+/* Set a minimum and maximum height for time slots and allow scrolling */
+.rbc-time-slot {
+  max-height: 200%;
+  /* overflow-y: auto; Scroll vertically if content exceeds */
+}
+
+/* Ensure the day slots can scroll */
+.rbc-day-slot {
+  max-height: 200%;
+  /* overflow-y: auto; Allow vertical scrolling if content exceeds */
+}
+
+/* Allow events within a time view to scroll when content overflows */
+.rbc-time-view {
+  max-height: 100%; /* Set the maximum visible height */
+  /* overflow-y: scroll; Enable vertical scrolling */
+}
+
+/* Make the month view scrollable horizontally */
+.rbc-month-view {
+  max-width: 100%; /* Prevent content from expanding beyond view */
+  overflow-x: scroll; /* Enable horizontal scrolling */
+}
+
+/* Set a max height for events within a time slot and allow scrolling */
+.rbc-time-slot .rbc-event {
+  max-height: 200%; /* Restrict max height for events */
+  /* overflow-y: auto; Enable vertical scrolling within events */
+}
+
+/* Adjust the event row segment to expand or shrink based on content */
+.rbc-row-segment {
+  overflow: visible; /* Allow overflow */
+  flex-grow: 1;
+  position: relative; /* Ensure correct scroll visibility */
+  height: auto; /* Let the height adjust based on content */
+}

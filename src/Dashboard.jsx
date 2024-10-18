@@ -136,6 +136,7 @@ const Dashboard = () => {
         patient.user_id.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : [];
+    
 
   return (
     <div className="w-full h-full">
@@ -397,7 +398,7 @@ const Dashboard = () => {
                 <div className={`w-full`}>
                   <div className={`flex flex-col gap-3 py-0 px-2 items-center`}>
                     {closestEvent ? (
-                      <div className={`flex flex-col gap-3`}>
+                      <div className={`flex flex-col gap-3 items-center`}>
                         <img
                           className="w-10 h-10 rounded-full"
                           src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
@@ -405,11 +406,11 @@ const Dashboard = () => {
                         />
                         <div className="flex w-full flex-col gap-1">
                           <div className="flex items-center justify-between">
-                            <p className="text-black font-poppins font-medium text-base">
+                            <p className="text-black font-poppins font-medium text-base text-center">
                               Check Up with Patient {closestEvent.uniqueId}
                             </p>
                           </div>
-                          <p className="text-start font-poppins font-medium text-sm text-[#0D0D0D] opacity-50 gap-2 flex flex-row">
+                          <p className="text-center items-center font-poppins font-medium justify-center text-sm text-[#0D0D0D] opacity-50 gap-2 flex flex-row">
                             <p>{closestEvent.eventDate.split("T")[0]}</p> |{" "}
                             <p>
                               {new Date(
