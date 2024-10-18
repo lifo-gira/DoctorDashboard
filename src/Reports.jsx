@@ -14,6 +14,10 @@ import {
 } from "@heroicons/react/16/solid";
 
 const Reports = () => {
+
+  var storedData = localStorage.getItem("user");
+  var parsedData = JSON.parse(storedData);
+  var userName = parsedData.user_id;
   const [isOpe, setIsOpe] = useState(false);
 
   const [isToggled, setIsToggled] = useState(false);
@@ -94,7 +98,7 @@ const Reports = () => {
                 className="w-8 h-8 rounded-full "
               />
               <h2 className="text-base font-semibold text-gray-800 flex items-center">
-                Dr. Sharon
+                {userName}
               </h2>
             </div>
           </div>

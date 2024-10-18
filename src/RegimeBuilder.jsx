@@ -29,6 +29,9 @@ import {
 } from "@heroicons/react/24/outline";
 
 const RegimeBuilder = () => {
+  var storedData = localStorage.getItem("user");
+  var parsedData = JSON.parse(storedData);
+  var userName = parsedData.user_id;
   const [isOpen, setIsOpen] = useState(false);
   const [isOpens, setIsOpens] = useState(false);
   const [selectedItems, setSelectedItems] = useState(null);
@@ -415,7 +418,7 @@ const RegimeBuilder = () => {
                 className="w-8 h-8 rounded-full "
               />
               <h2 className="text-base font-semibold text-gray-800 flex items-center">
-                Dr. Sharon
+                {userName}
               </h2>
             </div>
           </div>

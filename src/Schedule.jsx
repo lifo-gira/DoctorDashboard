@@ -17,13 +17,18 @@ import {
 } from "recharts";
 import { PieChart, Pie, Cell } from "recharts";
 import { AreaChart, Area } from "recharts";
+import VideoCall from "./VideoCall";
 
 const Schedule = () => {
+  var storedData = localStorage.getItem("user");
+  var parsedData = JSON.parse(storedData);
+  var userName = parsedData.user_id;
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(""); // Search query
   const [showDetails, setShowDetails] = useState(false); // State to control the details view
-
+  const [isVideoCallVisible, setIsVideoCallVisible] = useState(false);
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -53,6 +58,7 @@ const Schedule = () => {
 
     fetchData();
   }, []);
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const closeDropdown = () => setDropdownOpen(false);
@@ -294,7 +300,7 @@ const Schedule = () => {
                 className="w-8 h-8 rounded-full "
               />
               <h2 className="text-base font-semibold text-gray-800 flex items-center">
-                Dr. Sharon
+                {userName}
               </h2>
             </div>
           </div>
@@ -392,9 +398,18 @@ const Schedule = () => {
                   {selectedPatient.PersonalDetails.Gender}
                 </p>
               </div>
-              <button>
-                <PhoneIcon className="w-4 h-4" />
-              </button>
+              <button
+        onClick={() => {
+          setIsVideoCallVisible(true); // Show the VideoCall component
+        }}
+      >
+        <PhoneIcon className="w-4 h-4" />
+      </button>
+
+      {
+        <VideoCall doctorId={selectedPatient.patient_id} />
+      }
+
             </div>
             <div className="h-[1px] w-full opacity-15 bg-[#475467]"></div>
             <div className="w-full flex flex-row px-4 justify-between">

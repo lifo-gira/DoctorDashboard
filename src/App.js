@@ -8,10 +8,18 @@ import Sample from "./Sample";
 import Events from "./Events";
 import Reports from "./Reports";
 import Doc from "./Assets/docbg.png";
+import Spinner from "./Assets/Spinner";
+import Cookies from "js-cookie";
+import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
+import axios from "axios";
+import { jwtDecode as jwt_decode } from "jwt-decode";
+import VideoCall from "./VideoCall";
+import { ZIM } from "zego-zim-web";
+import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 
 function App() {
   const [activeComponent, setActiveComponent] = useState("dashboard");
-
+  const [isVideoCallVisible, setIsVideoCallVisible] = useState(false);
   const renderComponent = () => {
     switch (activeComponent) {
       case "dashboard":
@@ -31,16 +39,200 @@ function App() {
     }
   };
 
-  const [isloged, setisloged] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [password, setPassword] = useState("");
   const [isChecked, setIsChecked] = useState(false);
+  const [isloged, setisloged] = useState(false);
+  const [status, setStatus] = useState(null);
 
-  const handleLoginchange = () =>{
-    setisloged(!isloged);
-  }
-
-  const handleCheckboxChange = () => {
-    setIsChecked(!isChecked);
+  const handleCheckboxChange = (e) => {
+    setIsChecked(e.target.checked);
   };
+
+  const handleUserNameChange = (e) => {
+    setUserName(e.target.value);
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+  };
+
+  const handleLoginchange = async () => {
+    setStatus(<Spinner />);
+    const data = new URLSearchParams();
+    data.append("user_id", userName);
+    data.append("password", password);
+
+    let options = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    };
+
+    await fetch("https://api-wo6.onrender.com/login?" + data, options)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+
+        if (data == null) {
+          setStatus(<h3 className="text-[#bf2f2f]">Invalid Credentials</h3>);
+        } else if (data.type !== "doctor") {
+          // Show a message if the logged-in user is not a doctor
+          setStatus(
+            <h3 className="text-[#bf2f2f]">
+              Please login using doctor credentials
+            </h3>
+          );
+        } else {
+          // If the type is doctor, proceed with the login
+          Cookies.set("isLoggedIn", true);
+          Cookies.set("user", JSON.stringify(data));
+          localStorage.setItem("isLoggedIn", true);
+          localStorage.setItem("user", JSON.stringify(data));
+
+          var storedData = localStorage.getItem("user");
+          var parsedData = JSON.parse(storedData);
+
+          console.log(parsedData);
+          setisloged(!isloged);
+          setStatus(null); // Clear status on success
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        setStatus(<h3 className="text-[#bf2f2f]">Login Failed</h3>);
+      });
+  };
+
+  const [emailNotFound, setEmailNotFound] = useState(false);
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (response) => {
+      try {
+        console.log("Received Google OAuth Response:", response);
+        
+        // Check if credential is present
+        if (!response.credential) {
+          throw new Error("No credential received from Google");
+        }
+  
+        const decode = jwt_decode(response.credential); // decode the token
+        console.log(decode);
+  
+        const email = decode.email; // Get the email from the decoded token
+  
+        // First, check if the email exists
+        const userCheckResponse = await axios.get(`https://api-wo6.onrender.com/users/${email}`);
+  
+        if (userCheckResponse.status === 200) {
+          const userData = userCheckResponse.data; // This will be the data of the user
+  
+          // Prepare the callback data based on the existing user data
+          const callbackData = {
+            type: userData.type, // Use the existing type (doctor or patient)
+            name: userData.name,
+            user_id: userData.user_id,
+            email: userData.email,
+            password: `${decode.given_name}@123`, // sample password, if needed
+            data: userData.data || [], // Any additional data you want to send
+            videos: userData.videos || [],
+            doctor: userData.doctor || "doctor001", // Use existing doctor if applicable
+          };
+  
+          console.log(callbackData, "call");
+  
+          // try {
+          //   // Send data to your backend API for login
+          //   await axios.post(
+          //     "https://api-wo6.onrender.com/google-login",
+          //     callbackData,
+          //     {
+          //       headers: {
+          //         "Content-Type": "application/json",
+          //       },
+          //     }
+          //   );
+  
+          //   // Storing the user data locally
+          //   localStorage.setItem("isLoggedIn", true);
+          //   localStorage.setItem("user", JSON.stringify(callbackData));
+          //   // Optionally navigate to another page here
+          // }
+          // catch (error) {
+          //   if (error.response && error.response.status === 401) {
+          //     console.log("User not found. Please register first.");
+          //     setEmailNotFound(true); // show the error
+          //   } else {
+          //     console.error("Error processing Google OAuth response:", error);
+          //   }
+          // }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    },
+    onError: () => console.log("Google login failed"),
+  });
+
+  const handleCallClick = async (userId) => {
+    try {
+      // Fetch patient information
+      const response = await fetch(`https://api-wo6.onrender.com/patient-info/${userId}`);
+      console.log("IN")
+      if (!response.ok) {
+        throw new Error("Failed to fetch patient information");
+      }
+      const data = await response.json();
+      const documentId = data.health_tracker.meeting_link;
+      const patientId = data.patient_id;
+      const doctorId = data.doctor_id;
+      const patientName = data.user_id;
+      const doctorName = data.doctor_assigned;
+  
+      // Generate KitToken
+      const appID = 1455965454;
+      const serverSecret = "c49644efc7346cc2a7a899aed401ad76";
+      const KitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+        appID,
+        serverSecret,
+        documentId,
+        doctorId,
+        doctorName
+      );
+  
+      // Initialize Zego Cloud SDK
+      const zeroCloudInstance = ZegoUIKitPrebuilt.create(KitToken);
+      zeroCloudInstance.addPlugins({ ZIM });
+  
+      // Send video call invitation
+      const callee = patientId;
+      const calleeUsername = patientName;
+      zeroCloudInstance
+        .sendCallInvitation({
+          callees: [{ userID: callee, userName: calleeUsername }],
+          callType: ZegoUIKitPrebuilt.InvitationTypeVideoCall,
+          timeout: 60,
+        })
+        .then((res) => {
+          console.warn(res);
+          if (res.errorInvitees.length) {
+            alert("The user does not exist or is offline.");
+            return null;
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          // alert("The user does not exist or is offline.");
+          return null;
+        });
+    } catch (error) {
+      console.error(error);
+      return;
+      // Handle errors
+    }
+  };
+  
   return (
     <>
       {isloged ? (
@@ -207,6 +399,7 @@ function App() {
           </div>
           <div className="w-[93%] h-[98%] my-auto mr-1.5 bg-[#F8F8F8] rounded-l-[50px] overflow-hidden">
             {renderComponent()}
+            {isVideoCallVisible && <VideoCall onCallClick={handleCallClick} />}
           </div>
         </div>
       ) : (
@@ -226,6 +419,8 @@ function App() {
                   type="email"
                   placeholder="Email"
                   className="py-1 px-2 bg-transparent w-[94.5%] outline-none"
+                  value={userName}
+                  onChange={handleUserNameChange}
                 />
               </div>
               <div>
@@ -234,6 +429,8 @@ function App() {
                     type="password"
                     placeholder="Password"
                     className="py-1 px-2 bg-transparent w-[100%] outline-none"
+                    value={password}
+                    onChange={handlePasswordChange}
                   />
                   <svg
                     width="30"
@@ -243,14 +440,7 @@ function App() {
                     xmlns="http://www.w3.org/2000/svg"
                     className="cursor-pointer"
                   >
-                    <path
-                      d="M8.70197 8.43461C8.66372 8.43467 8.62583 8.42716 8.5905 8.41251C8.55517 8.39786 8.52308 8.37635 8.4961 8.34924L2.08889 1.94203C2.03657 1.88697 2.00784 1.81365 2.00881 1.7377C2.00979 1.66176 2.04039 1.5892 2.09409 1.5355C2.14779 1.48179 2.22035 1.45119 2.2963 1.45022C2.37224 1.44925 2.44556 1.47798 2.50062 1.53029L8.90784 7.93751C8.94854 7.97824 8.97626 8.03012 8.98748 8.08659C8.99871 8.14307 8.99294 8.20161 8.97091 8.25481C8.94888 8.30801 8.91157 8.35348 8.8637 8.38549C8.81583 8.41749 8.75955 8.43458 8.70197 8.43461V8.43461ZM5.35274 6.02918L4.41004 5.08648C4.40464 5.08112 4.3977 5.07759 4.39019 5.07638C4.38268 5.07518 4.37498 5.07635 4.36817 5.07975C4.36136 5.08314 4.35579 5.08858 4.35223 5.09531C4.34867 5.10203 4.34731 5.1097 4.34834 5.11724C4.3864 5.36181 4.50123 5.58795 4.67625 5.76297C4.85127 5.93799 5.07741 6.05282 5.32198 6.09088C5.32952 6.09191 5.33719 6.09055 5.34391 6.08699C5.35064 6.08343 5.35608 6.07786 5.35947 6.07105C5.36287 6.06424 5.36404 6.05654 5.36284 6.04903C5.36163 6.04152 5.3581 6.03458 5.35274 6.02918ZM5.64398 3.85036L6.58813 4.79415C6.59352 4.79958 6.60048 4.80318 6.60803 4.80443C6.61558 4.80568 6.62333 4.80452 6.63018 4.80111C6.63703 4.7977 6.64264 4.79223 6.6462 4.78545C6.64976 4.77868 6.6511 4.77096 6.65002 4.76339C6.61206 4.51848 6.49714 4.29202 6.3219 4.11678C6.14666 3.94153 5.92019 3.82661 5.67529 3.78865C5.6677 3.78748 5.65994 3.78874 5.65312 3.79224C5.64629 3.79575 5.64074 3.80132 5.63727 3.80816C5.6338 3.815 5.63258 3.82277 5.63378 3.83035C5.63499 3.83793 5.63856 3.84493 5.64398 3.85036V3.85036Z"
-                      fill="#313131"
-                    />
-                    <path
-                      d="M9.77598 5.25571C9.83624 5.16112 9.8681 5.05123 9.86778 4.93908C9.86746 4.82693 9.83497 4.71723 9.77416 4.62299C9.29253 3.87816 8.66764 3.24544 7.96722 2.79312C7.19125 2.29219 6.33574 2.02734 5.49261 2.02734C5.04813 2.02795 4.60667 2.10042 4.18532 2.24195C4.17353 2.24587 4.16294 2.25275 4.15455 2.26192C4.14617 2.2711 4.14027 2.28226 4.13743 2.29436C4.13458 2.30646 4.13488 2.31908 4.13829 2.33103C4.1417 2.34298 4.14812 2.35386 4.15693 2.36263L5.0168 3.22251C5.02574 3.23146 5.03685 3.23793 5.04904 3.24128C5.06123 3.24463 5.07408 3.24475 5.08634 3.24162C5.3778 3.17059 5.68264 3.1758 5.97152 3.25673C6.26039 3.33767 6.52355 3.49161 6.73568 3.70374C6.94781 3.91587 7.10175 4.17904 7.18269 4.46791C7.26363 4.75678 7.26883 5.06162 7.1978 5.35309C7.19471 5.36531 7.19485 5.37813 7.1982 5.39029C7.20155 5.40245 7.208 5.41352 7.21692 5.42244L8.45376 6.6602C8.46663 6.67309 8.48387 6.68069 8.50206 6.6815C8.52026 6.6823 8.5381 6.67626 8.55206 6.66457C9.02816 6.25876 9.44072 5.78386 9.77598 5.25571ZM5.49844 6.68714C5.23391 6.68715 4.97283 6.62711 4.73489 6.51154C4.49695 6.39597 4.28835 6.22788 4.12482 6.01996C3.96129 5.81203 3.8471 5.5697 3.79086 5.31122C3.73463 5.05274 3.7378 4.78487 3.80016 4.5278C3.80325 4.51557 3.80312 4.50275 3.79977 4.49059C3.79642 4.47844 3.78997 4.46736 3.78105 4.45844L2.56441 3.24126C2.55151 3.22834 2.53422 3.22074 2.51599 3.21997C2.49775 3.21919 2.47988 3.2253 2.46593 3.23707C2.02198 3.61586 1.61042 4.07674 1.23418 4.61535C1.16832 4.70987 1.13205 4.82184 1.12998 4.93703C1.1279 5.05222 1.16012 5.16542 1.22253 5.26226C1.70325 6.01456 2.32177 6.64818 3.01146 7.09432C3.78851 7.59725 4.62327 7.85208 5.49261 7.85208C5.94158 7.85088 6.38763 7.77995 6.81483 7.64185C6.82673 7.63805 6.83745 7.63125 6.84596 7.62211C6.85447 7.61296 6.86049 7.60179 6.86343 7.58965C6.86638 7.57751 6.86615 7.56482 6.86277 7.55279C6.85939 7.54077 6.85297 7.52981 6.84413 7.52098L5.98007 6.6571C5.97116 6.64818 5.96008 6.64173 5.94792 6.63838C5.93576 6.63503 5.92294 6.6349 5.91072 6.63799C5.77573 6.6707 5.63733 6.6872 5.49844 6.68714V6.68714Z"
-                      fill="#313131"
-                    />
+                    {/* SVG path here */}
                   </svg>
                 </div>
               </div>
@@ -274,10 +464,14 @@ function App() {
                   Forgot Password
                 </p>
               </div>
+              <button
+                className="w-[100%] bg-[#7075DB] font-poppins font-medium text-sm text-white p-3 rounded-lg"
+                onClick={handleLoginchange}
+              >
+                Login
+              </button>
+              {status && <div>{status}</div>}
             </div>
-            <button className="w-[70%] bg-[#7075DB] font-poppins font-medium text-sm text-white p-3 rounded-lg" onClick={handleLoginchange}>
-              Login
-            </button>
             <div className="w-[70%] flex flex-col justify-center items-center gap-6">
               <div className="w-full flex flex-row items-center gap-2 justify-center opacity-35">
                 <div className="w-1/3 h-[0.5px] rounded-full bg-[#313131]" />
@@ -286,43 +480,54 @@ function App() {
                 </p>
                 <div className="w-1/3 h-[0.5px] rounded-full bg-[#313131]" />
               </div>
-              <div className="px-14 py-2 rounded-lg border-[#3869EB] border-[1.8px] cursor-pointer">
-                <svg
-                  width="35"
-                  height="35"
-                  viewBox="0 0 10 10"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+              <div>
+                <div
+                  className="px-14 py-2 rounded-lg border-[#3869EB] border-[1.8px] cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onClick={handleGoogleLogin}
                 >
-                  <g clip-path="url(#clip0_1345_4157)">
-                    <path
-                      d="M8.90368 4.11288H8.59089V4.09676H5.09605V5.65003H7.29062C6.97045 6.55422 6.11014 7.20329 5.09605 7.20329C3.80937 7.20329 2.76615 6.16008 2.76615 4.87339C2.76615 3.58671 3.80937 2.5435 5.09605 2.5435C5.68998 2.5435 6.23032 2.76756 6.64174 3.13354L7.74009 2.03519C7.04656 1.38884 6.11887 0.990234 5.09605 0.990234C2.95158 0.990234 1.21289 2.72892 1.21289 4.87339C1.21289 7.01787 2.95158 8.75655 5.09605 8.75655C7.24053 8.75655 8.97921 7.01787 8.97921 4.87339C8.97921 4.61303 8.95242 4.35888 8.90368 4.11288Z"
-                      fill="#FFC107"
-                    />
-                    <path
-                      d="M1.66016 3.06598L2.93597 4.00163C3.28118 3.14694 4.11723 2.5435 5.09559 2.5435C5.68952 2.5435 6.22986 2.76756 6.64128 3.13354L7.73963 2.03519C7.0461 1.38884 6.11841 0.990234 5.09559 0.990234C3.60407 0.990234 2.31059 1.8323 1.66016 3.06598Z"
-                      fill="#FF3D00"
-                    />
-                    <path
-                      d="M5.09566 8.7562C6.09868 8.7562 7.01005 8.37235 7.69912 7.74813L6.49728 6.73113C6.09432 7.03759 5.60191 7.20334 5.09566 7.20294C4.08565 7.20294 3.22805 6.55891 2.90497 5.66016L1.63867 6.6358C2.28133 7.89336 3.58647 8.7562 5.09566 8.7562Z"
-                      fill="#4CAF50"
-                    />
-                    <path
-                      d="M8.90334 4.11279H8.59055V4.09668H5.0957V5.64994H7.29027C7.13712 6.08028 6.86125 6.45632 6.49675 6.7316L6.49733 6.73121L7.69917 7.74821C7.61413 7.82548 8.97886 6.81489 8.97886 4.87331C8.97886 4.61295 8.95207 4.35879 8.90334 4.11279Z"
-                      fill="#1976D2"
-                    />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_1345_4157">
-                      <rect
-                        width="9.31958"
-                        height="9.31958"
-                        fill="white"
-                        transform="translate(0.435547 0.212891)"
+                  <svg
+                    width="35"
+                    height="35"
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <g clipPath="url(#clip0_1345_4157)">
+                      <path
+                        d="M8.90368 4.11288H8.59089V4.09676H5.09605V5.65003H7.29062C6.97045 6.55422 6.11014 7.20329 5.09605 7.20329C3.80937 7.20329 2.76615 6.16008 2.76615 4.87339C2.76615 3.58671 3.80937 2.5435 5.09605 2.5435C5.68998 2.5435 6.23032 2.76756 6.64174 3.13354L7.74009 2.03519C7.04656 1.38884 6.11887 0.990234 5.09605 0.990234C2.95158 0.990234 1.21289 2.72892 1.21289 4.87339C1.21289 7.01787 2.95158 8.75655 5.09605 8.75655C7.24053 8.75655 8.97921 7.01787 8.97921 4.87339C8.97921 4.61303 8.95242 4.35888 8.90368 4.11288Z"
+                        fill="#FFC107"
                       />
-                    </clipPath>
-                  </defs>
-                </svg>
+                      <path
+                        d="M1.66016 3.06598L2.93597 4.00163C3.28118 3.14694 4.11723 2.5435 5.09559 2.5435C5.68952 2.5435 6.22986 2.76756 6.64128 3.13354L7.73963 2.03519C7.0461 1.38884 6.11841 0.990234 5.09559 0.990234C3.60407 0.990234 2.31059 1.8323 1.66016 3.06598Z"
+                        fill="#FF3D00"
+                      />
+                      <path
+                        d="M5.09566 8.7562C6.09868 8.7562 7.01005 8.37235 7.69912 7.74813L6.49728 6.73113C6.09432 7.03759 5.60191 7.20334 5.09566 7.20294C4.08565 7.20294 3.22805 6.55891 2.90497 5.66016L1.63867 6.6358C2.28133 7.89336 3.58647 8.7562 5.09566 8.7562Z"
+                        fill="#4CAF50"
+                      />
+                      <path
+                        d="M8.90334 4.11279H8.59055V4.09668H5.0957V5.64994H7.29027C7.13712 6.08028 6.86125 6.45632 6.49675 6.7316L6.49733 6.73121L7.69917 7.74821C7.61413 7.82548 8.97886 6.81489 8.97886 4.87331C8.97886 4.61295 8.95207 4.35879 8.90334 4.11279Z"
+                        fill="#1976D2"
+                      />
+                    </g>
+                    <defs>
+                      <clipPath id="clip0_1345_4157">
+                        <rect
+                          width="9.31958"
+                          height="9.31958"
+                          fill="white"
+                          transform="translate(0.435547 0.212891)"
+                        />
+                      </clipPath>
+                    </defs>
+                  </svg>
+                </div>
+
+                {emailNotFound && (
+                  <p>Email not found. Please register first.</p>
+                )}
               </div>
             </div>
           </div>

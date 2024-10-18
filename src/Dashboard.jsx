@@ -11,7 +11,9 @@ import { ChevronRightIcon, ArrowUpRightIcon } from "@heroicons/react/16/solid";
 const Dashboard = () => {
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const [screenheight, setScreenHeight] = useState(window.innerHeight);
-
+  var storedData = localStorage.getItem("user");
+  var parsedData = JSON.parse(storedData);
+  var userName = parsedData.user_id;
   useEffect(() => {
     const handleResize = () => {
       const windowWidth = window.innerWidth;
@@ -136,13 +138,12 @@ const Dashboard = () => {
         patient.user_id.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : [];
-    
 
   return (
     <div className="w-full h-full">
       <div className="flex w-[95%] mx-auto mt-4">
         <div className="flex w-[60%] h-full">
-        <div className="relative w-full">
+          <div className="relative w-full">
             {/* Search Input */}
             <div className="w-full bg-gray-200 rounded-xl px-4 py-2 flex items-center">
               <input
@@ -240,7 +241,7 @@ const Dashboard = () => {
                 className="w-8 h-8 rounded-full "
               />
               <h2 className="text-base font-semibold text-gray-800 flex items-center">
-                Dr. Sharon
+                {userName}
               </h2>
             </div>
           </div>
@@ -252,7 +253,7 @@ const Dashboard = () => {
             <div className="flex flex-row gap-2 font-poppins text-xl font-normal items-end">
               Good Morning
               <p className="text-3xl font-poppins text-[#7075DB] font-bold">
-                Dr. Sharon!
+                {userName}!
               </p>
             </div>
             <div className="w-full h-full relative mt-5">
@@ -342,17 +343,17 @@ const Dashboard = () => {
                 {/* Updated Additional Info Section */}
                 <div className="w-1/6">
                   <div className="bg-[#BAE5F6] text-[#0D3CB7] rounded-lg px-2 py-1 text-sm text-center">
-                  {patient.PersonalDetails.pain_indication.map(
-                          (report, index) => (
-                            <div key={index}>
-                              {report && (
-                                <div>
-                                  <span>{report}</span>
-                                </div>
-                              )}
+                    {patient.PersonalDetails.pain_indication.map(
+                      (report, index) => (
+                        <div key={index}>
+                          {report && (
+                            <div>
+                              <span>{report}</span>
                             </div>
-                          )
-                        )}
+                          )}
+                        </div>
+                      )
+                    )}
                   </div>
                 </div>
 
