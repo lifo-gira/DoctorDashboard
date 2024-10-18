@@ -6,6 +6,7 @@ import Schedule from "./Schedule";
 import RegimeBuilder from "./RegimeBuilder";
 import Sample from "./Sample";
 import Events from "./Events";
+import Reports from "./Reports";
 import Doc from "./Assets/docbg.png";
 
 function App() {
@@ -23,6 +24,8 @@ function App() {
         return <Sample />;
       case "events":
         return <Events />;
+      case "reports":
+        return <Reports />;
       default:
         return <RegimeBuilder />;
     }
@@ -30,6 +33,10 @@ function App() {
 
   const [isloged, setisloged] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+
+  const handleLoginchange = () =>{
+    setisloged(!isloged);
+  }
 
   const handleCheckboxChange = () => {
     setIsChecked(!isChecked);
@@ -144,7 +151,7 @@ function App() {
                   </defs>
                 </svg>
               </button>
-              <button onClick={() => setActiveComponent("dashboard")}>
+              <button onClick={() => setActiveComponent("reports")}>
                 <svg
                   width="33"
                   height="33"
@@ -170,7 +177,7 @@ function App() {
                   </defs>
                 </svg>
               </button>
-              <button onClick={() => setActiveComponent("dashboard")}>
+              <button onClick={handleLoginchange}>
                 <svg
                   width="31"
                   height="31"
@@ -218,7 +225,7 @@ function App() {
                 <input
                   type="email"
                   placeholder="Email"
-                  className="py-1 px-2 bg-transparent w-full outline-none"
+                  className="py-1 px-2 bg-transparent w-[94.5%] outline-none"
                 />
               </div>
               <div>
@@ -268,7 +275,7 @@ function App() {
                 </p>
               </div>
             </div>
-            <button className="w-[70%] bg-[#7075DB] font-poppins font-medium text-sm text-white p-3 rounded-lg">
+            <button className="w-[70%] bg-[#7075DB] font-poppins font-medium text-sm text-white p-3 rounded-lg" onClick={handleLoginchange}>
               Login
             </button>
             <div className="w-[70%] flex flex-col justify-center items-center gap-6">

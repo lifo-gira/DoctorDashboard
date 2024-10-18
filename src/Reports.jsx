@@ -1,123 +1,29 @@
-import React from "react";
-import "./events.css";
+import React, { useState, useEffect } from "react";
+
 import Porfileimg from "./Assets/profile.png";
-import { Calendar, momentLocalizer } from "react-big-calendar";
-import "react-big-calendar/lib/css/react-big-calendar.css";
-import moment from "moment";
-import "moment/locale/en-gb";
+import User from "./Assets/user.png";
+import {
+  ChevronRightIcon,
+  ArrowUpRightIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  PlusIcon,
+  EyeIcon,
+  TrashIcon,
+  XMarkIcon,
+} from "@heroicons/react/16/solid";
 
-const localizer = momentLocalizer(moment);
+const Reports = () => {
+  const [isOpe, setIsOpe] = useState(false);
 
-const events = [
-  {
-    title: "Topic",
-    start: new Date(2024, 10, 12, 9, 0), // Feb 12, 9:00 AM
-    end: new Date(2024, 10, 12, 11, 0), // Feb 12, 11:00 AM
-    color: "green",
-    avatars: [Porfileimg, Porfileimg],
-  },
-  // Add more events here...
-];
+  const [isToggled, setIsToggled] = useState(false);
 
-// Custom event rendering with color and avatars
-const eventStyleGetter = (event) => {
-  let backgroundColor, borderColor, textColor, minHeight, maxHeight;
-
-  if (event.color === "green") {
-    backgroundColor = "#e0f7e9";
-    borderColor = "#29a744";
-    textColor = "#29a744";
-  } else if (event.color === "orange") {
-    backgroundColor = "#ffe9d6";
-    borderColor = "#ff5733";
-    textColor = "#ff5733";
-  } else if (event.color === "yellow") {
-    backgroundColor = "#fff9d6";
-    borderColor = "#ffcc00";
-    textColor = "#ffcc00";
-  }
-
-  return {
-    style: {
-      backgroundColor,
-      border: `1px solid ${borderColor}`,
-      color: textColor,
-      height: "80px",
-      borderRadius: "10px",
-      padding: "5px",
-      margin: "7px",
-    },
+  const handleToggle = () => {
+    setIsToggled(!isToggled);
   };
-};
-
-const CustomEvent = ({ event }) => {
-  const { style } = eventStyleGetter(event);
-  return (
-    <div className="flex flex-col items-center justify-center w-full h-full gap-2 p-1">
-      <div>{event.title}</div>
-      <div className="flex flex-row justify-center items-center gap-4">
-        {event.avatars.map((avatar, index) => (
-          <img key={index} src={avatar} alt="avatar" className="w-6 h-6" />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const CustomToolbar = (toolbar) => {
-  const goToBack = () => {
-    toolbar.onNavigate("PREV");
-  };
-
-  const goToNext = () => {
-    toolbar.onNavigate("NEXT");
-  };
-
-  const goToToday = () => {
-    toolbar.onNavigate("TODAY");
-  };
-
-  const viewButtons = ["Agenda", "Month", "Week", "Day"];
 
   return (
-    <div className="custom-toolbar">
-      {/* Left side: Today, Back, and Next buttons */}
-      <div className="nav-buttons">
-        <button onClick={goToToday}>Today</button>
-      </div>
-
-      <div className="flex flex-row items-center gap-3">
-        {/* Center: Date display */}
-        <div onClick={goToBack} className="fb">
-          {"<"}
-        </div>
-        <div className="date-display">{toolbar.label}</div>
-        <div onClick={goToNext} className="fb">
-          {">"}
-        </div>
-      </div>
-
-      {/* Right side: Year, Month, Week, Day view buttons */}
-      <div className="flex flex-row gap-5 bg-white text-[#ADB8CC] text-sm py-2 px-4 rounded-full">
-        {viewButtons.map((view) => (
-          <div
-            key={view}
-            className={`cursor-pointer ${
-              toolbar.view === view.toLowerCase() ? "active" : ""
-            }`}
-            onClick={() => toolbar.onView(view.toLowerCase())}
-          >
-            {view}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const Events = () => {
-  return (
-    <div className="w-full h-full">
+    <div className='className="w-full h-full"'>
       <div className="flex w-[95%] mx-auto mt-4">
         <div className="flex w-[60%] h-full">
           <div className="relative w-full">
@@ -194,37 +100,75 @@ const Events = () => {
           </div>
         </div>
       </div>
-      <div className="h-[85%] w-[95%] mx-auto mt-6 flex flex-col gap-5">
-        <div className="flex flex-row w-full h-[12%] justify-between">
-          <p className="text-black text-2xl font-poppins font-semibold">
-            Schedule
-          </p>
-          <div className="flex flex-col items-center gap-2">
-            <p className="font-poppins font-semibold text-sm text-[#475467]">
-              Total Patients for Today
-            </p>
-            <p className="font-poppins font-semibold text-3xl text-[#475467]">
-              8
-            </p>
+      <div className="w-full h-full">
+        <div className="w-[95%] h-[85%]  mx-auto">
+          <div className="w-full h-[20%]  flex flex-row mt-6 justify-between">
+            <div className="w-[50%] h-full flex items-center">
+              <div className="w-3/4 h-[70%] flex flex-row items-center gap-6 px-4 rounded-xl ml-4">
+                <img
+                  src={User}
+                  alt="Profile"
+                  className="w-16 h-16 rounded-xl "
+                />
+                <div className="flex flex-col gap-1 w-full">
+                  <div className="flex flex-row font-poppins font-semibold text-[#475467] text-lg gap-2">
+                    <p>Patient Name </p>
+                    <p>|</p>
+                    <p>Raj Ronald Shaw</p>
+                  </div>
+                  <div className="flex flex-row justify-between w-full">
+                    <div className="flex flex-row gap-4 justify-center items-center">
+                      <div className="flex flex-row font-poppins font-semibold text-base text-[#475467] gap-[3px]">
+                        <p>35</p>
+                        <p>,</p>
+                        <p>Male</p>
+                      </div>
+                      <div className="font-poppins font-normal text-sm text-[#6B6B6B]">
+                        <p>PAR14AD</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="w-[50%] h-full  flex items-center">
+              <div className="w-full mx-auto mt-4 flex justify-end mr-12">
+                <div
+                  className="w-[37%] relative flex items-center font-poppins font-semibold text-white bg-[#282B30] rounded-full cursor-pointer p-0"
+                  onClick={handleToggle}
+                >
+                  {/* Toggle Bubble */}
+                  <div
+                    className={`absolute w-[50%] h-[90%] bg-[#484E56] rounded-full transition-transform duration-300 ease-in-out ${
+                      isToggled ? "translate-x-full" : "translate-x-0"
+                    }`}
+                  ></div>
+
+                  {/* Text Labels */}
+                  <div className="flex w-full justify-between py-2 px-4 z-10 gap-4">
+                    <p
+                      className={`text-sm ${
+                        !isToggled ? "font-bold" : "font-normal opacity-75"
+                      }`}
+                    >
+                      Assessment
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        isToggled ? "font-bold" : "font-normal opacity-75"
+                      }`}
+                    >
+                      Exercise
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="h-[88%] w-full overflow-auto">
-          <Calendar
-            localizer={localizer}
-            events={events}
-            startAccessor="start"
-            endAccessor="end"
-            components={{
-              event: CustomEvent,
-              toolbar: CustomToolbar, // Ensure CustomToolbar is defined elsewhere
-            }}
-            eventPropGetter={eventStyleGetter}
-            style={{ height: 700, fontFamily: "Poppins" }}
-          />
         </div>
       </div>
     </div>
   );
 };
 
-export default Events;
+export default Reports;
