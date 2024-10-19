@@ -152,8 +152,8 @@ useEffect(() => {
       // Map event dates to events format
       const formattedEvents = allEventDates.map((date, index) => ({
         title: `Event ${index + 1}`, // Customize event title as needed
-        start: new Date(date.getTime() + 2 * 60 * 60 * 1000), // Set start date
-        end: new Date(date.getTime() + 2 * 60 * 60 * 1000), // Set end date 2 hours later
+        start: date, // Set start date
+        end: date, // Set end date 2 hours later
         color: "green", // Set event color
         avatars: [Porfileimg, Porfileimg], // Add your avatar images
       }));
