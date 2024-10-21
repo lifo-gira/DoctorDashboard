@@ -7,6 +7,7 @@ import RegimeBuilder from "./RegimeBuilder";
 import Sample from "./Sample";
 import Events from "./Events";
 import Reports from "./Reports";
+import Detailreport from "./Detailreport";
 import Doc from "./Assets/docbg.png";
 import Spinner from "./Assets/Spinner";
 import Cookies from "js-cookie";
@@ -33,7 +34,7 @@ function App() {
       case "events":
         return <Events />;
       case "reports":
-        return <Reports />;
+        return <Detailreport />;
       default:
         return <RegimeBuilder />;
     }
@@ -445,7 +446,7 @@ function App() {
                 </div>
               </div>
               <div className="w-full flex flex-row justify-between">
-                <div className="flex items-center">
+                <div className="flex flex-row items-center justify-center gap-2">
                   <input
                     type="checkbox"
                     id="checkbox"
@@ -455,7 +456,7 @@ function App() {
                   />
                   <label
                     htmlFor="checkbox"
-                    className="ml-2 text-[#313131] text-sm font-poppins font-medium"
+                    className=" text-[#313131] text-sm font-poppins font-medium my-auto"
                   >
                     Remember Me
                   </label>

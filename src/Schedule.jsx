@@ -398,17 +398,9 @@ const Schedule = () => {
                   {selectedPatient.PersonalDetails.Gender}
                 </p>
               </div>
-              <button
-        onClick={() => {
-          setIsVideoCallVisible(true); // Show the VideoCall component
-        }}
-      >
-        <PhoneIcon className="w-4 h-4" />
-      </button>
-
-      {
-        <VideoCall doctorId={selectedPatient.patient_id} />
-      }
+              <div className="px-4 mt-2">
+            <VideoCall doctorId={selectedPatient.patient_id} />
+          </div>
 
             </div>
             <div className="h-[1px] w-full opacity-15 bg-[#475467]"></div>

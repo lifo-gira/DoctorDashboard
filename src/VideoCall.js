@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { ZIM } from "zego-zim-web";
 import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
+import { PhoneIcon } from "@heroicons/react/16/solid";
 
 export default function VideoCall({doctorId}) {
   console.log(doctorId)
@@ -111,23 +112,12 @@ export default function VideoCall({doctorId}) {
 
   return (
     <div>
-      <div>My username: <span>{userInfo.userName}</span></div>
-      <div>My userId: <span>{userInfo.userId}</span>
-      </div>
-      <button
-        onClick={() => {
-          handleSend(ZegoUIKitPrebuilt.InvitationTypeVideoCall);
-        }}
-      >
-        Video call
-      </button>
-      <button
-        onClick={() => {
-          handleSend(ZegoUIKitPrebuilt.InvitationTypeVoiceCall);
-        }}
-      >
-        Voice call
-      </button>
-    </div>
+    <PhoneIcon 
+      className="w-4 h-4 cursor-pointer" 
+      onClick={() => {
+        handleSend(ZegoUIKitPrebuilt.InvitationTypeVideoCall);
+      }} 
+    />
+  </div>
   );
 }

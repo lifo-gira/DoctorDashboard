@@ -1,0 +1,30 @@
+.scrollbar-custom3::-webkit-scrollbar-thumb {
+    background-color: #C2C2FF; /* Scrollbar thumb color */
+    border-radius: 10px; /* Rounded corners */
+    width: 2px; /* Thumb width */
+    height: 20px; /* Thumb height */
+  }
+  
+  .scrollbar-custom3::-webkit-scrollbar {
+    width: 8px; /* Set the width of the scrollbar track */
+    height: 6px; /* Set the height of the scrollbar track */
+  }
+  
+  .scrollbar-custom3::-webkit-scrollbar-track {
+    background-color: #f0f0f0; /* Track color */
+  }
+
+/* Apply Poppins font to the entire MaterialReactTable */
+.mrt-table {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+/* Apply Poppins font to table header */
+.mrt-table th {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+/* Apply Poppins font to table cells */
+.mrt-table td {
+  font-family: 'Poppins', sans-serif !important;
+}
