@@ -8,7 +8,7 @@ import { Typography } from "@material-tailwind/react";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { ChevronRightIcon, ArrowUpRightIcon } from "@heroicons/react/16/solid";
 
-const Dashboard = ({setCurrentPage}) => {
+const Dashboard = ({setCurrentPage,toReportPage}) => {
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const [screenheight, setScreenHeight] = useState(window.innerHeight);
   var storedData = localStorage.getItem("user");
@@ -34,12 +34,13 @@ const Dashboard = ({setCurrentPage}) => {
   }, []);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [closestEvent, setClosestEvent] = useState(null);
-
+  const [selectedPatient, setSelectedPatient] = useState(null);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(""); // Search query
   const [flagMinusOneCount, setFlagMinusOneCount] = useState(0);
   const [flagZeroCount, setFlagZeroCount] = useState(0);
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -364,15 +365,22 @@ const Dashboard = ({setCurrentPage}) => {
                 </div>
 
                 <div className="w-1/6 flex flex-row justify-end items-center">
-                  <div className="flex flex-row gap-1 items-center" onClick={() => setCurrentPage("reports")}>
-                    <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
-                      Report
-                    </div>
-                    <ArrowUpRightIcon
-                      color="blue"
-                      className="w-4 h-4 cursor-pointer"
-                    />
-                  </div>
+                <div 
+        className="flex flex-row gap-1 items-center" 
+        onClick={() => {
+          setCurrentPage("reports"); // Set the current page to reports
+          toReportPage(patient); // Pass the mapped patient data here
+          console.log(patient); // For debugging, you can remove this later
+        }}
+      >
+        <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
+          Report
+        </div>
+        <ArrowUpRightIcon
+          color="blue"
+          className="w-4 h-4 cursor-pointer"
+        />
+      </div>
                 </div>
               </div>
             ))}

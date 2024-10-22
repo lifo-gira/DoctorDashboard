@@ -63,14 +63,13 @@ const renderCustomizedLabel = ({
     </text>
   );
 };
-const Reports = ({ setCurrentPage }) => {
+const Reports = ({ setCurrentPage, reportData }) => {
   var storedData = localStorage.getItem("user");
   var parsedData = JSON.parse(storedData);
   var userName = parsedData.user_id;
   const [isOpe, setIsOpe] = useState(false);
 
   const [isToggled, setIsToggled] = useState(false);
-
   const handleToggle = () => {
     setIsToggled(!isToggled);
   };
@@ -212,17 +211,17 @@ const Reports = ({ setCurrentPage }) => {
                   <div className="flex flex-row font-poppins font-semibold text-[#475467] text-lg gap-2">
                     <p>Patient Name </p>
                     <p>|</p>
-                    <p>Raj Ronald Shaw</p>
+                    <p>{reportData.user_id}</p>
                   </div>
                   <div className="flex flex-row justify-between w-full">
                     <div className="flex flex-row gap-4 justify-center items-center">
                       <div className="flex flex-row font-poppins font-semibold text-base text-[#475467] gap-[3px]">
-                        <p>35</p>
+                        <p>{reportData.PersonalDetails.Age}</p>
                         <p>,</p>
-                        <p>Male</p>
+                        <p>{reportData.PersonalDetails.Gender}</p>
                       </div>
                       <div className="font-poppins font-normal text-sm text-[#6B6B6B]">
-                        <p>PAR14AD</p>
+                        <p>{reportData.unique_id}</p>
                       </div>
                     </div>
                   </div>
@@ -284,7 +283,7 @@ const Reports = ({ setCurrentPage }) => {
               </div>
               <div className="bg-[#1E1B39] py-2 px-3 rounded-[12px] w-40">
                 <p className="font-poppins font-medium text-sm text-white text-center">
-                  {!isToggled? "Assessment":"Recovery"} 1 - 3
+                  {!isToggled ? "Assessment" : "Recovery"} 1 - 3
                 </p>
               </div>
             </div>
@@ -346,12 +345,19 @@ const Reports = ({ setCurrentPage }) => {
                   </p>
                   <DocumentCheckIcon className="w-5 h-5 cursor-pointer" />
                 </div>
-              ):<div className="flex flex-row gap-4">
-              <p className="font-poppins font-semibold text-sm">
-                Assign New Exercises
-              </p>
-              <PlusIcon className="w-5 h-5 cursor-pointer" onClick={() => setCurrentPage("regimeBuilder")}/>
-            </div>}
+              ) : (
+                <div className="flex flex-row gap-4">
+                  <p className="font-poppins font-semibold text-sm">
+                    Assign New Exercises
+                  </p>
+                  <PlusIcon
+                    className="w-5 h-5 cursor-pointer"
+                    onClick={() =>
+                      setCurrentPage("regimeBuilder", { toRegime: reportData })
+                    }
+                  />
+                </div>
+              )}
               <div>
                 <div
                   className={`w-full rounded-lg flex flex-row justify-between items-center my-1 py-2 px-3 mt-2 cursor-pointer `} // Apply the background color conditionally
@@ -399,7 +405,10 @@ const Reports = ({ setCurrentPage }) => {
                   </div>
 
                   <div className="w-1/6 flex flex-row justify-end items-center">
-                    <div className="flex flex-row gap-1 items-center" onClick={() => setCurrentPage("detailreports")}>
+                    <div
+                      className="flex flex-row gap-1 items-center"
+                      onClick={() => setCurrentPage("detailreports")}
+                    >
                       <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
                         Report
                       </div>

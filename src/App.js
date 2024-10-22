@@ -21,21 +21,36 @@ import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 function App() {
   const [activeComponent, setActiveComponent] = useState("dashboard");
   const [isVideoCallVisible, setIsVideoCallVisible] = useState(false);
-  
+  const [currentPage, setCurrentPage] = useState("");
+const [selectedPatient, setSelectedPatient] = useState(null);
+const [reportData, setReportData] = useState(null);
+const [regimeBuilderData, setRegimeBuilderData] = useState(null); // State to hold data for RegimeBuilder
+
   const renderComponent = () => {
     switch (activeComponent) {
       case "dashboard":
-        return <Dashboard setCurrentPage={setActiveComponent}/>;
+        return <Dashboard setCurrentPage={setActiveComponent} toReportPage={toReportPage}/>;
       case "schedule":
         return <Schedule setCurrentPage={setActiveComponent}/>;
       case "regimeBuilder":
-        return <RegimeBuilder setCurrentPage={setActiveComponent}/>;
+        return <RegimeBuilder setCurrentPage={handleComponentChange} regimeData={regimeBuilderData} />; 
       case "sample":
         return <Sample />;
       case "events":
         return <Events />;
-      case "reports":
-        return <Reports  setCurrentPage={setActiveComponent}/>;
+        case "reports":
+          return (
+            <Reports 
+              setCurrentPage={(component, props) => {
+                // When navigating to regimeBuilder, log the props received
+                if (component === "regimeBuilder") {
+                  console.log('Received data for toRegime:', props.toRegime);
+                }
+                handleComponentChange(component, props); // Use the new function
+              }} 
+              reportData={reportData} 
+            />
+          );
       case "detailreports":
         return <Detailreport />
       default:
@@ -43,6 +58,24 @@ function App() {
     }
   };
 
+
+
+const handleComponentChange = (component, props) => {
+  console.log('Navigating to component:', component);
+  if (props) {
+    console.log('Received props:', props); // Log the props being passed
+    if (component === "regimeBuilder") {
+      setRegimeBuilderData(props.toRegime); // Store the props for RegimeBuilder
+    }
+  }
+  setActiveComponent(component); // Update the active component state
+};
+  
+
+  const toReportPage = (data) => {
+    // console.log("Data received:", data);
+    setReportData(data); // Store the received data in state
+  };
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [isChecked, setIsChecked] = useState(false);

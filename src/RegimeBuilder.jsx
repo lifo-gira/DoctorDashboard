@@ -28,7 +28,7 @@ import {
   ArrowLeftStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 
-const RegimeBuilder = ({setCurrentPage}) => {
+const RegimeBuilder = ({setCurrentPage,regimeData }) => {
   var storedData = localStorage.getItem("user");
   var parsedData = JSON.parse(storedData);
   var userName = parsedData.user_id;
@@ -44,6 +44,7 @@ const RegimeBuilder = ({setCurrentPage}) => {
     "Flexibility",
     "Stretching",
   ];
+
   const handleSelectItem = (exercise) => {
     setSelectedItems(exercise);
     setIsOpen(false); // Optionally close dropdown after selection
@@ -444,17 +445,17 @@ const RegimeBuilder = ({setCurrentPage}) => {
                   <div className="flex flex-row font-poppins font-semibold text-[#475467] text-lg gap-2">
                     <p>Patient Name </p>
                     <p>|</p>
-                    <p>Raj Ronald Shaw</p>
+                    <p>{regimeData.user_id}</p>
                   </div>
                   <div className="flex flex-row justify-between w-full">
                     <div className="flex flex-row gap-4">
                       <div className="flex flex-row font-poppins font-semibold text-base text-[#475467] gap-[3px]">
-                        <p>35</p>
+                        <p>{regimeData.PersonalDetails.Age}</p>
                         <p>,</p>
-                        <p>Male</p>
+                        <p>{regimeData.PersonalDetails.Gender}</p>
                       </div>
                       <div className="font-poppins font-normal text-base text-[#6B6B6B]">
-                        <p>PAR14AD</p>
+                        <p>{regimeData.unique_id}</p>
                       </div>
                     </div>
                     <div
