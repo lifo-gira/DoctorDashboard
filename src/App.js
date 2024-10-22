@@ -24,17 +24,19 @@ function App() {
   const renderComponent = () => {
     switch (activeComponent) {
       case "dashboard":
-        return <Dashboard />;
+        return <Dashboard setCurrentPage={setActiveComponent}/>;
       case "schedule":
-        return <Schedule />;
+        return <Schedule setCurrentPage={setActiveComponent}/>;
       case "regimeBuilder":
-        return <RegimeBuilder />;
+        return <RegimeBuilder setCurrentPage={setActiveComponent}/>;
       case "sample":
         return <Sample />;
       case "events":
         return <Events />;
       case "reports":
-        return <Detailreport />;
+        return <Reports  setCurrentPage={setActiveComponent}/>;
+      case "detailreports":
+        return <Detailreport />
       default:
         return <RegimeBuilder />;
     }

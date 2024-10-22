@@ -28,7 +28,7 @@ import {
   ArrowLeftStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 
-const RegimeBuilder = () => {
+const RegimeBuilder = ({setCurrentPage}) => {
   var storedData = localStorage.getItem("user");
   var parsedData = JSON.parse(storedData);
   var userName = parsedData.user_id;
@@ -373,7 +373,7 @@ const RegimeBuilder = () => {
       <div className="flex w-[95%] mx-auto mt-4">
         <div className="flex w-[60%]  h-full">
           <div className="w-5/6  px-4 py-2 flex items-center">
-            <p className="text-[#475467] text-xl font-poppins font-semibold">
+            <p className="text-[#475467] text-xl font-poppins font-semibold" >
               REGIME BUILDER
             </p>
           </div>
@@ -459,10 +459,11 @@ const RegimeBuilder = () => {
                     </div>
                     <div
                       className={`flex flex-row gap-1 items-center justify-end  `}
+                     
                     >
                       <div
                         className={`text-xs font-poppins font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer`}
-                        //onClick={() => onReportClick(item.patient_id)}
+                       
                       >
                         Report
                       </div>

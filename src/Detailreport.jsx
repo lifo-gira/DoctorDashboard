@@ -506,7 +506,7 @@ const Detailreport = () => {
           padding: '8px',
           flexWrap: 'wrap',
         }}
-        className="font-poppins font-bold text-[#7075DB]"
+        className="font-poppins font-bold text-[#7075DB] my-auto"
                 style={{ letterSpacing: "4px" }}
       >OVERVIEW</p>
 
@@ -934,7 +934,7 @@ const Detailreport = () => {
                 <div className="w-1/2 mx-auto my-auto relative">
                   <div className="flex flex-row gap-2 justify-end items-center  pr-4 w-full">
                     <div
-                      className="w-1/2 flex justify-between items-center bg-white border-[#D5D5D5] border-[1px] rounded-lg px-4 py-2 cursor-pointer gap-2 w-[37%] "
+                      className="w-1/2 flex justify-between items-center bg-white border-[#D5D5D5] border-[1px] rounded-lg px-4 py-2 cursor-pointer gap-2 "
                       onClick={() => setIsOpen(!isOpen)}
                     >
                       <p className="font-poppins font-medium text-black text-sm">
