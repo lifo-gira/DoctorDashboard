@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import Dashboard from "./Dashboard";
@@ -21,6 +21,7 @@ import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 function App() {
   const [activeComponent, setActiveComponent] = useState("dashboard");
   const [isVideoCallVisible, setIsVideoCallVisible] = useState(false);
+  
   const renderComponent = () => {
     switch (activeComponent) {
       case "dashboard":
@@ -48,6 +49,16 @@ function App() {
   const [isloged, setisloged] = useState(false);
   const [status, setStatus] = useState(null);
 
+  useEffect(() => {
+    const loggedIn = localStorage.getItem('isLoggedIn');
+
+    if (loggedIn) {
+      setisloged(true); // Set the logged-in state to true
+      console.log(isloged,"HIIII")
+    }
+}, []);
+
+
   const handleCheckboxChange = (e) => {
     setIsChecked(e.target.checked);
   };
@@ -59,6 +70,15 @@ function App() {
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
   };
+
+  const handleLogout = () => {
+    setisloged(false);
+    localStorage.removeItem('isLoggedIn');
+    window.location.reload(); // Refresh the page to reflect the change
+};
+
+
+
 
   const handleLoginchange = async () => {
     setStatus(<Spinner />);
@@ -93,11 +113,11 @@ function App() {
           Cookies.set("user", JSON.stringify(data));
           localStorage.setItem("isLoggedIn", true);
           localStorage.setItem("user", JSON.stringify(data));
-
+          
           var storedData = localStorage.getItem("user");
           var parsedData = JSON.parse(storedData);
-
-          console.log(parsedData);
+          localStorage.setItem("_id",parsedData._id);
+          console.log(localStorage.getItem("_id",parsedData._id));
           setisloged(!isloged);
           setStatus(null); // Clear status on success
         }
@@ -372,7 +392,7 @@ function App() {
                   </defs>
                 </svg>
               </button>
-              <button onClick={handleLoginchange}>
+              <button onClick={handleLogout}>
                 <svg
                   width="31"
                   height="31"

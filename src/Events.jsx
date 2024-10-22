@@ -122,53 +122,65 @@ const Events = () => {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState([]); // State for events
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const response = await fetch(
-        "https://api-wo6.onrender.com/patient-details/all"
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch data");
-      }
-      const data = await response.json();
-      setLoading(false);
-      // Process event dates and create events array
-      const allEventDates = data.reduce((acc, patient) => {
-        if (patient.events_date) {
-          const parsedDates = patient.events_date.map(dateString => {
-            const dateParts = dateString.match(/\d+/g); // Extract numbers
-            if (dateParts) {
-              // Use dateParts[0] - 1 for month to match 1 for January, 2 for February, etc.
-              return new Date(Number(dateParts[0]), Number(dateParts[1]) - 1, Number(dateParts[2]), Number(dateParts[3]), Number(dateParts[4])); // Convert to Date
-            }
-            return null; // Return null if parsing fails
-          }).filter(Boolean); // Remove null values
-          return [...acc, ...parsedDates]; // Combine with accumulated dates
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          "https://api-wo6.onrender.com/patient-details/all"
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
         }
-        return acc; // Return accumulated dates
-      }, []);
-
-      // Map event dates to events format
-      const formattedEvents = allEventDates.map((date, index) => ({
-        title: `Event ${index + 1}`, // Customize event title as needed
-        start: date, // Set start date
-        end: date, // Set end date 2 hours later
-        color: "green", // Set event color
-        avatars: [Porfileimg, Porfileimg], // Add your avatar images
-      }));
-
-      setEvents(formattedEvents); // Set the formatted events
-      console.log(formattedEvents); // Log only the formatted events
-
-    } catch (error) {
-      console.error("Error fetching patient information:", error);
-      setLoading(true);
-    }
-  };
-
-  fetchData();
-}, []);
+        const data = await response.json();
+        setLoading(false);
+  
+        // Retrieve doctor_id from localStorage
+        const doctorId = localStorage.getItem("_id");
+  
+        // Process event dates and create events array for patients with the matching doctor_id
+        const allEventDates = data.reduce((acc, patient) => {
+          // Only process patients associated with the logged-in doctor
+          if (patient.doctor_id === doctorId && patient.events_date) {
+            const parsedDates = patient.events_date.map(dateString => {
+              const dateParts = dateString.match(/\d+/g); // Extract numbers
+              if (dateParts) {
+                // Use dateParts[0] - 1 for month to match 1 for January, 2 for February, etc.
+                return new Date(
+                  Number(dateParts[0]),
+                  Number(dateParts[1]) - 1,
+                  Number(dateParts[2]),
+                  Number(dateParts[3]),
+                  Number(dateParts[4])
+                ); // Convert to Date
+              }
+              return null; // Return null if parsing fails
+            }).filter(Boolean); // Remove null values
+            return [...acc, ...parsedDates]; // Combine with accumulated dates
+          }
+          return acc; // Return accumulated dates
+        }, []);
+  
+        // Map event dates to events format
+        const formattedEvents = allEventDates.map((date, index) => ({
+          title: `Event ${index + 1}`, // Customize event title as needed
+          start: date, // Set start date
+          end: new Date(date.getTime() + 2 * 60 * 60 * 1000), // Set end date 2 hours later
+          color: "green", // Set event color
+          avatars: [Porfileimg, Porfileimg], // Add your avatar images
+        }));
+  
+        setEvents(formattedEvents); // Set the formatted events
+        console.log(formattedEvents); // Log only the formatted events
+  
+      } catch (error) {
+        console.error("Error fetching patient information:", error);
+        setLoading(true);
+      }
+    };
+  
+    fetchData();
+  }, []);
+  
 
 const [dropdownOpen, setDropdownOpen] = useState(false);
 const dropdownRef = useRef(null);

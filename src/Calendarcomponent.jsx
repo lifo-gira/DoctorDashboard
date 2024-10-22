@@ -25,9 +25,15 @@ class CalendarComponent extends React.Component {
         throw new Error("Failed to fetch patient data");
       }
       const data = await response.json();
-
-      // Set the patients state
-      this.setState({ patients: data }, () => {
+  
+      // Retrieve doctor_id from localStorage
+      const doctorId = localStorage.getItem("_id");
+  
+      // Filter patients based on doctor_id
+      const filteredPatients = data.filter(patient => patient.doctor_id === doctorId);
+  
+      // Set the patients state with the filtered data
+      this.setState({ patients: filteredPatients }, () => {
         // Update the calendar with new event data after fetching patients
         this.updateCalendarEvents();
       });
@@ -35,6 +41,7 @@ class CalendarComponent extends React.Component {
       console.error("Error fetching patient data:", error);
     }
   };
+  
 
   updateCalendarEvents = () => {
     const { patients } = this.state;

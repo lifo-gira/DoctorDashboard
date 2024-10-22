@@ -39,25 +39,33 @@ const Schedule = ({setCurrentPage}) => {
           throw new Error("Failed to fetch data");
         }
         const data = await response.json();
-        // Convert schedule_start_date to Date objects for each patient
-
-        setPatients(data);
+  
+        // Retrieve doctor_id from localStorage
+        const doctorId = localStorage.getItem("_id");
+  
+        // Filter patients based on doctor_id
+        const filteredPatients = data.filter(patient => patient.doctor_id === doctorId);
+  
+        setPatients(filteredPatients); // Set the filtered patients
         setLoading(false);
-        // Count occurrences of flag == -1 and flag == 0
-        const minusOneCount = data.filter(
+  
+        // Count occurrences of flag == -1 and flag == 0 in filtered patients
+        const minusOneCount = filteredPatients.filter(
           (patient) => patient.flag === -1
         ).length;
-        const zeroCount = data.filter((patient) => patient.flag === 0).length;
-
-        console.log("Processed patient data:", data); // Log fetched and processed data
+        const zeroCount = filteredPatients.filter((patient) => patient.flag === 0).length;
+  
+  
+        console.log("Processed patient data:", filteredPatients); // Log fetched and processed data
       } catch (error) {
         console.error("Error fetching patient information:", error);
         setLoading(true);
       }
     };
-
+  
     fetchData();
   }, []);
+  
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);

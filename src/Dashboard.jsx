@@ -20,7 +20,7 @@ const Dashboard = ({setCurrentPage}) => {
       setScreenWidth(window.innerWidth);
       setScreenHeight(window.innerHeight);
     };
-
+    console.log(localStorage.getItem("_id",parsedData._id));
     // Add event listener for window resize
     window.addEventListener("resize", handleResize);
 
@@ -51,28 +51,34 @@ const Dashboard = ({setCurrentPage}) => {
           throw new Error("Failed to fetch data");
         }
         const data = await response.json();
-
-        setPatients(data);
+  
+        // Retrieve doctor_id from localStorage
+        const doctorId = localStorage.getItem("_id");
+  
+        // Filter patients based on doctor_id
+        const filteredPatients = data.filter(patient => patient.doctor_id === doctorId);
+  
+        setPatients(filteredPatients); // Set the filtered patients
         setLoading(false);
-
+  
         // Count occurrences of flag == -1 and flag == 0
-        const minusOneCount = data.filter(
+        const minusOneCount = filteredPatients.filter(
           (patient) => patient.flag === -1
         ).length;
-        const zeroCount = data.filter((patient) => patient.flag === 0).length;
-
+        const zeroCount = filteredPatients.filter((patient) => patient.flag === 0).length;
+  
         setFlagMinusOneCount(minusOneCount);
         setFlagZeroCount(zeroCount);
-
+  
         const now = new Date(); // Get current date
         let closest = null;
-
-        // Find the closest upcoming event
-        data.forEach((patient) => {
+  
+        // Find the closest upcoming event in the filtered patients
+        filteredPatients.forEach((patient) => {
           patient.events_date.forEach((dateStr) => {
             const dateMatch = dateStr.match(/\(([^)]+)\)/);
             if (!dateMatch) return; // Skip if no match
-
+  
             const dateParts = dateMatch[1].split(",").map(Number);
             // Construct the event date in UTC
             const eventDate = new Date(
@@ -84,10 +90,10 @@ const Dashboard = ({setCurrentPage}) => {
                 dateParts[4]
               )
             ); // Use UTC hours and minutes
-
+  
             console.log(`Checking event date: ${eventDate.toISOString()}`); // Log the event date
             console.log(`Current date: ${now.toISOString()}`); // Log the current date
-
+  
             // Check if the event is in the future
             if (eventDate >= now) {
               // If there's no closest event or the current event is closer, update closest
@@ -102,19 +108,19 @@ const Dashboard = ({setCurrentPage}) => {
             }
           });
         });
-
+  
         setClosestEvent(closest); // Set the closest event
-
-        console.log("Processed patient data:", data); // Log fetched and processed data
+  
+        console.log("Processed patient data:", filteredPatients); // Log fetched and processed data
       } catch (error) {
         console.error("Error fetching patient information:", error);
         setLoading(true);
       }
     };
-
+  
     fetchData();
   }, []);
-
+  
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const closeDropdown = () => setDropdownOpen(false);
