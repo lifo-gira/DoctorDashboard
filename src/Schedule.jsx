@@ -19,7 +19,7 @@ import { PieChart, Pie, Cell } from "recharts";
 import { AreaChart, Area } from "recharts";
 import VideoCall from "./VideoCall";
 
-const Schedule = ({setCurrentPage}) => {
+const Schedule = ({setCurrentPage,toReportPage}) => {
   var storedData = localStorage.getItem("user");
   var parsedData = JSON.parse(storedData);
   var userName = parsedData.user_id;
@@ -368,7 +368,11 @@ const Schedule = ({setCurrentPage}) => {
         </div>
 
         <div className="w-1/6 flex flex-row justify-end items-center">
-          <div className="flex flex-row gap-1 items-center" onClick={() => setCurrentPage("reports")}>
+          <div className="flex flex-row gap-1 items-center" onClick={() => {
+          setCurrentPage("reports"); // Set the current page to reports
+          toReportPage(patient); // Pass the mapped patient data here
+          console.log(patient); // For debugging, you can remove this later
+        }}>
             <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
               Report
             </div>

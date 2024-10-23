@@ -31,9 +31,9 @@ const [regimeBuilderData, setRegimeBuilderData] = useState(null); // State to ho
       case "dashboard":
         return <Dashboard setCurrentPage={setActiveComponent} toReportPage={toReportPage}/>;
       case "schedule":
-        return <Schedule setCurrentPage={setActiveComponent}/>;
+        return <Schedule setCurrentPage={setActiveComponent} toReportPage={toReportPage}/>;
       case "regimeBuilder":
-        return <RegimeBuilder setCurrentPage={handleComponentChange} regimeData={regimeBuilderData} />; 
+        return <RegimeBuilder setCurrentPage={handleComponentChange} regimeData={regimeBuilderData} toReportPage={toReportPage}/>; 
       case "sample":
         return <Sample />;
       case "events":
@@ -76,6 +76,7 @@ const handleComponentChange = (component, props) => {
     // console.log("Data received:", data);
     setReportData(data); // Store the received data in state
   };
+
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [isChecked, setIsChecked] = useState(false);
@@ -373,7 +374,7 @@ const handleComponentChange = (component, props) => {
                   </defs>
                 </svg>
               </button>
-              <button onClick={() => setActiveComponent("RegimeBuilder")}>
+              <button >
                 <svg
                   width="31"
                   height="32"
@@ -399,7 +400,7 @@ const handleComponentChange = (component, props) => {
                   </defs>
                 </svg>
               </button>
-              <button onClick={() => setActiveComponent("reports")}>
+              <button >
                 <svg
                   width="33"
                   height="33"

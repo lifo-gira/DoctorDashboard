@@ -28,7 +28,7 @@ import {
   ArrowLeftStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 
-const RegimeBuilder = ({setCurrentPage,regimeData }) => {
+const RegimeBuilder = ({setCurrentPage,regimeData,toReportPage }) => {
   var storedData = localStorage.getItem("user");
   var parsedData = JSON.parse(storedData);
   var userName = parsedData.user_id;
@@ -246,46 +246,68 @@ const RegimeBuilder = ({setCurrentPage,regimeData }) => {
     exerciseCategory,
     exerciseImage,
     vid
-  ) => {
+) => {
     const { reps, sets } = exerciseInputs[exerciseName] || { reps: 0, sets: 0 };
+    
+    // console.log('Exercise Inputs:', exerciseInputs);
+    // console.log(`Reps for ${exerciseName}:`, reps);
+    // console.log(`Sets for ${exerciseName}:`, sets);
 
     // Check if the exercise already exists in selectedExercises
     const exerciseExists = selectedExercises.some(
-      (exercise) =>
-        exercise.name === exerciseName && exercise.category === exerciseCategory
+        (exercise) =>
+            exercise.name === exerciseName && exercise.category === exerciseCategory
     );
 
     if (exerciseExists) {
-      // Display a warning message (you can customize this part)
-      alert(
-        `Exercise "${exerciseName}" in category "${exerciseCategory}" has already been added.`
-      );
-      return; // Exit the function if the exercise already exists
+        console.warn(`Exercise "${exerciseName}" in category "${exerciseCategory}" has already been added.`);
+        alert(
+            `Exercise "${exerciseName}" in category "${exerciseCategory}" has already been added.`
+        );
+        return; // Exit the function if the exercise already exists
     }
 
     const newExercise = {
-      name: exerciseName,
-      category: exerciseCategory,
-      reps: parseInt(reps),
-      sets: parseInt(sets),
-      image: exerciseImage,
-      vid: vid,
+        name: exerciseName,
+        category: exerciseCategory,
+        reps: parseInt(reps),
+        sets: parseInt(sets),
+        image: exerciseImage,
+        vid: vid,
     };
 
-    setSelectedExercises((prev) => [...prev, newExercise]);
-    setAddedCategories((prev) => new Set(prev).add(exerciseCategory));
-    setAddedExercisesByCategory((prev) => ({
-      ...prev,
-      [exerciseCategory]: [
-        ...(prev[exerciseCategory] || []),
-        { name: exerciseName, image: exerciseImage },
-      ],
-    }));
+    console.log('New Exercise:', newExercise);
+
+    setSelectedExercises((prev) => {
+        const updatedExercises = [...prev, newExercise];
+        console.log('Updated Selected Exercises:', updatedExercises);
+        return updatedExercises;
+    });
+
+    setAddedCategories((prev) => {
+        const updatedCategories = new Set(prev).add(exerciseCategory);
+        // console.log('Updated Added Categories:', updatedCategories);
+        return updatedCategories;
+    });
+
+    setAddedExercisesByCategory((prev) => {
+        const updatedExercisesByCategory = {
+            ...prev,
+            [exerciseCategory]: [
+                ...(prev[exerciseCategory] || []),
+                { name: exerciseName, image: exerciseImage },
+            ],
+        };
+        console.log('Updated Exercises by Category:', updatedExercisesByCategory);
+        return updatedExercisesByCategory;
+    });
 
     // Optionally, reset inputs after adding
     handleInputChange(exerciseName, "reps", 0);
     handleInputChange(exerciseName, "sets", 0);
-  };
+    console.log(`Inputs reset for ${exerciseName}: reps and sets set to 0.`);
+};
+
 
   const [clickedCategory, setClickedCategory] = useState(null);
 
@@ -343,12 +365,49 @@ const RegimeBuilder = ({setCurrentPage,regimeData }) => {
     }
   };
 
-  const postExercise = () => {
+  const postExercise = async () => {
     console.log("Exercise Data", selectedExercises);
+    
+    // Transform selectedExercises into the required format for the API
+    const formattedExercises = selectedExercises.reduce((acc, exercise) => {
+        acc[exercise.name.replace(/\s+/g, '-')] = {
+            sets: exercise.sets,
+            reps: exercise.reps
+        };
+        return acc;
+    }, {});
+
+    console.log('Formatted Exercises for API:', formattedExercises);
+
+    // Send data to the API
+    try {
+        const response = await fetch(`https://api-wo6.onrender.com/patients/${regimeData.patient_id}/add-exercise-assigned`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formattedExercises),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+        }
+
+        const responseData = await response.json();
+        console.log('Response from API:', responseData);
+        alert('Exercises added successfully!');
+
+    } catch (error) {
+        console.error('Failed to send exercises:', error);
+        alert('Failed to add exercises. Please try again.');
+    }
+
+    // Reset states after sending
     setSelectedExercises([]);
-    setAddedExercisesByCategory([]);
+    setAddedExercisesByCategory({});
     togglePopup();
-  };
+};
+
   const handleInputChanges = (exerciseName, field, value) => {
     setSelectedExercises((prevExercises) =>
       prevExercises.map((exercise) => {
@@ -460,11 +519,13 @@ const RegimeBuilder = ({setCurrentPage,regimeData }) => {
                     </div>
                     <div
                       className={`flex flex-row gap-1 items-center justify-end  `}
-                     
+                      onClick={() => {
+                        setCurrentPage("reports"); // Set the current page to reports
+                        toReportPage(regimeData); // Pass the mapped patient data here
+                      }}
                     >
                       <div
                         className={`text-xs font-poppins font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer`}
-                       
                       >
                         Report
                       </div>
@@ -827,19 +888,23 @@ const RegimeBuilder = ({setCurrentPage,regimeData }) => {
                             </span>
                             <div className="flex flex-row justify-between">
                               <input
-                                type="number"
-                                value={exercise.reps}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    exercise.name,
-                                    "reps",
-                                    parseInt(e.target.value) || 0
-                                  )
-                                }
-                                className="bg-[#FFA7EC] text-[#475467] rounded-lg px-2 py-1 text-sm font-semibold w-14"
-                                min="0"
-                                placeholder="00"
-                              />
+                                    type="number"
+                                    value={exercise.reps}
+                                    onChange={(e) => {
+                                        const newReps = parseInt(e.target.value) || 0;
+                                        // Update the reps in the selectedExercises state
+                                        setSelectedExercises((prev) =>
+                                            prev.map((ex) =>
+                                                ex.name === exercise.name
+                                                    ? { ...ex, reps: newReps }
+                                                    : ex
+                                            )
+                                        );
+                                    }}
+                                    className="bg-[#FFA7EC] text-[#475467] rounded-lg px-2 py-1 text-sm font-semibold w-14"
+                                    min="0"
+                                    placeholder="00"
+                                />
                             </div>
                           </div>
                           <div className="flex flex-col items-center gap-1">
@@ -847,20 +912,24 @@ const RegimeBuilder = ({setCurrentPage,regimeData }) => {
                               SET
                             </span>
                             <div className="flex flex-row">
-                              <input
-                                type="number"
-                                value={exercise.sets}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    exercise.name,
-                                    "sets",
-                                    parseInt(e.target.value) || 0
-                                  )
-                                }
-                                className="bg-blue-200 text-[#475467] rounded-lg px-2 py-1 text-sm font-semibold w-14"
-                                min="0"
-                                placeholder="00"
-                              />
+                            <input
+                                    type="number"
+                                    value={exercise.sets}
+                                    onChange={(e) => {
+                                        const newSets = parseInt(e.target.value) || 0;
+                                        // Update the sets in the selectedExercises state
+                                        setSelectedExercises((prev) =>
+                                            prev.map((ex) =>
+                                                ex.name === exercise.name
+                                                    ? { ...ex, sets: newSets }
+                                                    : ex
+                                            )
+                                        );
+                                    }}
+                                    className="bg-blue-200 text-[#475467] rounded-lg px-2 py-1 text-sm font-semibold w-14"
+                                    min="0"
+                                    placeholder="00"
+                                />
                             </div>
                           </div>
                         </div>
