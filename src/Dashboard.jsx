@@ -3,10 +3,12 @@ import Porfileimg from "./Assets/profile.png";
 import Maindb from "./Assets/maindb.png";
 import Leg from "./Assets/leg.png";
 import CalendarComponent from "./Calendarcomponent";
-
+import { ZIM } from "zego-zim-web";
 import { Typography } from "@material-tailwind/react";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { ChevronRightIcon, ArrowUpRightIcon } from "@heroicons/react/16/solid";
+import VideoCall from "./VideoCall";
+import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 
 const Dashboard = ({setCurrentPage,toReportPage}) => {
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -40,7 +42,7 @@ const Dashboard = ({setCurrentPage,toReportPage}) => {
   const [searchQuery, setSearchQuery] = useState(""); // Search query
   const [flagMinusOneCount, setFlagMinusOneCount] = useState(0);
   const [flagZeroCount, setFlagZeroCount] = useState(0);
-  
+  const [isVideoCallVisible, setIsVideoCallVisible] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -145,6 +147,64 @@ const Dashboard = ({setCurrentPage,toReportPage}) => {
         patient.user_id.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : [];
+
+    const handleCallClick = async (userId) => {
+      try {
+        // Fetch patient information
+        const response = await fetch(`https://api-wo6.onrender.com/patient-info/${userId}`);
+        console.log("IN")
+        if (!response.ok) {
+          throw new Error("Failed to fetch patient information");
+        }
+        const data = await response.json();
+        const documentId = data._id;
+        const patientId = data.patient_id;
+        const doctorId = data.doctor_id;
+        const patientName = data.user_id;
+        const doctorName = data.doctor_assigned;
+    
+        // Generate KitToken
+        const appID = 1455965454;
+        const serverSecret = "c49644efc7346cc2a7a899aed401ad76";
+        const KitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+          appID,
+          serverSecret,
+          documentId,
+          doctorId,
+          doctorName
+        );
+    
+        // Initialize Zego Cloud SDK
+        const zeroCloudInstance = ZegoUIKitPrebuilt.create(KitToken);
+        zeroCloudInstance.addPlugins({ ZIM });
+    
+        // Send video call invitation
+        const callee = patientId;
+        const calleeUsername = patientName;
+        zeroCloudInstance
+          .sendCallInvitation({
+            callees: [{ userID: callee, userName: calleeUsername }],
+            callType: ZegoUIKitPrebuilt.InvitationTypeVideoCall,
+            timeout: 60,
+          })
+          .then((res) => {
+            console.warn(res);
+            if (res.errorInvitees.length) {
+              alert("The user does not exist or is offline.");
+              return null;
+            }
+          })
+          .catch((err) => {
+            console.error(err);
+            // alert("The user does not exist or is offline.");
+            return null;
+          });
+      } catch (error) {
+        console.error(error);
+        return;
+        // Handle errors
+      }
+    };
 
   return (
     <div className="w-full h-full">
@@ -470,6 +530,7 @@ const Dashboard = ({setCurrentPage,toReportPage}) => {
           </div>
         </div>
       </div>
+      {isVideoCallVisible && <VideoCall onCallClick={handleCallClick} />}
     </div>
   );
 };

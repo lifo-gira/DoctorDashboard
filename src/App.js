@@ -25,6 +25,7 @@ function App() {
 const [selectedPatient, setSelectedPatient] = useState(null);
 const [reportData, setReportData] = useState(null);
 const [regimeBuilderData, setRegimeBuilderData] = useState(null); // State to hold data for RegimeBuilder
+const [detailReportData, setDetailReportData] = useState(null);
 
   const renderComponent = () => {
     switch (activeComponent) {
@@ -40,19 +41,19 @@ const [regimeBuilderData, setRegimeBuilderData] = useState(null); // State to ho
         return <Events />;
         case "reports":
           return (
-            <Reports 
-              setCurrentPage={(component, props) => {
-                // When navigating to regimeBuilder, log the props received
-                if (component === "regimeBuilder") {
-                  console.log('Received data for toRegime:', props.toRegime);
-                }
-                handleComponentChange(component, props); // Use the new function
-              }} 
-              reportData={reportData} 
-            />
+            <Reports
+            setCurrentPage={(component, props) => {
+              if (component === "regimeBuilder") {
+                console.log('Received data for toRegime:', props.toRegime);
+              }
+              handleComponentChange(component, props); // Use the new function
+            }}
+            reportData={reportData}
+            toReportPage={toReportPage}
+          />
           );
       case "detailreports":
-        return <Detailreport />
+        return <Detailreport assessment={detailReportData.assessment} index={detailReportData.index} reportData={detailReportData.reportData} selected={detailReportData.selected}/>
       default:
         return <RegimeBuilder />;
     }
@@ -60,20 +61,28 @@ const [regimeBuilderData, setRegimeBuilderData] = useState(null); // State to ho
 
 
 
-const handleComponentChange = (component, props) => {
-  console.log('Navigating to component:', component);
-  if (props) {
-    console.log('Received props:', props); // Log the props being passed
-    if (component === "regimeBuilder") {
-      setRegimeBuilderData(props.toRegime); // Store the props for RegimeBuilder
+  const handleComponentChange = (component, props) => {
+    console.log('Navigating to component:', component);
+    if (props) {
+      console.log('Received props:', props); // Log the props being passed
+      if (component === "regimeBuilder") {
+        setRegimeBuilderData(props.toRegime); // Store the props for RegimeBuilder
+      } else if (component === "detailreports") {
+        setDetailReportData({
+          assessment: props.assessment, // Store the assessment data
+          index: props.index, // Store the index
+          reportData: props.reportData, // Store the report data
+          selected: props.selected
+        });
+      }
     }
-  }
-  setActiveComponent(component); // Update the active component state
-};
+    setActiveComponent(component); // Update the active component state
+  };
+  
   
 
   const toReportPage = (data) => {
-    // console.log("Data received:", data);
+    console.log("Data received:", data);
     setReportData(data); // Store the received data in state
   };
 
@@ -111,56 +120,84 @@ const handleComponentChange = (component, props) => {
     window.location.reload(); // Refresh the page to reflect the change
 };
 
+const handleLoginchange = async () => {
+  setStatus(<Spinner />);
+  const data = new URLSearchParams();
+  data.append("user_id", userName);
+  data.append("password", password);
 
-
-
-  const handleLoginchange = async () => {
-    setStatus(<Spinner />);
-    const data = new URLSearchParams();
-    data.append("user_id", userName);
-    data.append("password", password);
-
-    let options = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    };
-
-    await fetch("https://api-wo6.onrender.com/login?" + data, options)
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-
-        if (data == null) {
-          setStatus(<h3 className="text-[#bf2f2f]">Invalid Credentials</h3>);
-        } else if (data.type !== "doctor") {
-          // Show a message if the logged-in user is not a doctor
-          setStatus(
-            <h3 className="text-[#bf2f2f]">
-              Please login using doctor credentials
-            </h3>
-          );
-        } else {
-          // If the type is doctor, proceed with the login
-          Cookies.set("isLoggedIn", true);
-          Cookies.set("user", JSON.stringify(data));
-          localStorage.setItem("isLoggedIn", true);
-          localStorage.setItem("user", JSON.stringify(data));
-          
-          var storedData = localStorage.getItem("user");
-          var parsedData = JSON.parse(storedData);
-          localStorage.setItem("_id",parsedData._id);
-          console.log(localStorage.getItem("_id",parsedData._id));
-          setisloged(!isloged);
-          setStatus(null); // Clear status on success
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        setStatus(<h3 className="text-[#bf2f2f]">Login Failed</h3>);
-      });
+  let options = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
   };
+
+  await fetch("https://api-wo6.onrender.com/login?" + data, options)
+    .then((res) => res.json())
+    .then(async (data) => { // Change this to async to await fetch
+      console.log(data);
+
+      if (data == null) {
+        setStatus(<h3 className="text-[#bf2f2f]">Invalid Credentials</h3>);
+      } else if (data.type !== "doctor") {
+        // Show a message if the logged-in user is not a doctor
+        setStatus(
+          <h3 className="text-[#bf2f2f]">
+            Please login using doctor credentials
+          </h3>
+        );
+      } else {
+        // If the type is doctor, proceed with the login
+        Cookies.set("isLoggedIn", true);
+        Cookies.set("user", JSON.stringify(data));
+        localStorage.setItem("isLoggedIn", true);
+        localStorage.setItem("user", JSON.stringify(data));
+        
+        var storedData = localStorage.getItem("user");
+        var parsedData = JSON.parse(storedData);
+        localStorage.setItem("_id", parsedData._id);
+        console.log(localStorage.getItem("_id", parsedData._id));
+
+        setisloged(!isloged);
+        setStatus(null); // Clear status on success
+
+        // Directly fetch patients after successful login
+        try {
+          const response = await fetch(
+            "https://api-wo6.onrender.com/patient-details/all"
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch data");
+          }
+          const allPatients = await response.json();
+
+          // Filter patients based on doctor_id
+          const filteredPatients = allPatients.filter(
+            (patient) => patient.doctor_id === parsedData._id
+          );
+
+          // Assuming you want the first patient's id if it exists
+          if (filteredPatients.length > 0) {
+            const firstPatientId = filteredPatients[0].patient_id; // Adjust based on your data structure
+            console.log("First patient ID:", firstPatientId);
+            // Proceed with any further actions using firstPatientId
+            handleCallClick(firstPatientId); // Call your function with the patient_id
+          } else {
+            console.log("No patients found for this doctor.");
+          }
+        } catch (error) {
+          console.error("Error fetching patient information:", error);
+        }
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      setStatus(<h3 className="text-[#bf2f2f]">Login Failed</h3>);
+    });
+};
+
+
 
   const [emailNotFound, setEmailNotFound] = useState(false);
 
@@ -241,7 +278,7 @@ const handleComponentChange = (component, props) => {
         throw new Error("Failed to fetch patient information");
       }
       const data = await response.json();
-      const documentId = data.health_tracker.meeting_link;
+      const documentId = data._id;
       const patientId = data.patient_id;
       const doctorId = data.doctor_id;
       const patientName = data.user_id;

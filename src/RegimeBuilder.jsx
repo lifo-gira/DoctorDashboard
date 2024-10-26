@@ -57,7 +57,7 @@ const RegimeBuilder = ({setCurrentPage,regimeData,toReportPage }) => {
 
   const exerciseslist = [
     {
-      name: "Left Leg Bend",
+      name: "Left-Leg-Bend",
       category: "Endurance",
       image: (
         <img
@@ -69,7 +69,7 @@ const RegimeBuilder = ({setCurrentPage,regimeData,toReportPage }) => {
       vid: LeftLeg,
     },
     {
-      name: "Right Leg Bend",
+      name: "Right-Leg-Bend",
       category: "Endurance",
       image: (
         <img
@@ -81,7 +81,7 @@ const RegimeBuilder = ({setCurrentPage,regimeData,toReportPage }) => {
       vid: RightLeg,
     },
     {
-      name: "Left Knee Bend",
+      name: "Left-Knee-Bend",
       category: "Strength",
       image: (
         <img
@@ -93,7 +93,7 @@ const RegimeBuilder = ({setCurrentPage,regimeData,toReportPage }) => {
       vid: LeftKnee,
     },
     {
-      name: "Right Knee Bend",
+      name: "Right-Knee-Bend",
       category: "Balance",
       image: (
         <img
@@ -105,7 +105,7 @@ const RegimeBuilder = ({setCurrentPage,regimeData,toReportPage }) => {
       vid: RightKnee,
     },
     {
-      name: "Sit Stand",
+      name: "Sit-Stand",
       category: "Flexibility",
       image: (
         <img

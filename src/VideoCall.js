@@ -3,8 +3,8 @@ import { ZIM } from "zego-zim-web";
 import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 import { PhoneIcon } from "@heroicons/react/16/solid";
 
-export default function VideoCall({doctorId}) {
-  console.log(doctorId)
+export default function VideoCall({onMeetEnd,doctorId}) {
+
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,18 +18,18 @@ export default function VideoCall({doctorId}) {
     const fetchPatientInfo = async () => {
       try {
         const response = await fetch(
-          `https://api-wo6.onrender.com/patient-info/${doctorId}`
+          `https://api-backup-vap2.onrender.com/patient-info/${doctorId}`
         );
         const data = await response.json();
 
         if (response.ok) {
           setPatients(data);
           console.log(data)
+          setDocumentId(data.health_tracker.meeting_link);
           setpatientId(data.patient_id);
           setdoctor_Id(data.doctor_id)
           setdoctorName(data.doctor_assigned)
           setpatientName(data.user_id);
-          setDocumentId(data._id)
         } else {
           setError(data.detail || 'Failed to fetch patient information');
         }
@@ -89,30 +89,34 @@ export default function VideoCall({doctorId}) {
   function handleSend(callType) {
     const callee = patientId; // Hardcoded callee userID
     const calleeUsername = patientName; // Hardcoded callee username
-
+  
     // send call invitation
     zeroCloudInstance.current
-    .sendCallInvitation({
+      .sendCallInvitation({
         callees: [{ userID: callee, userName: calleeUsername }],
         callType: callType,
         timeout: 60,
       })
       .then((res) => {
-        console.warn(res);
+        console.warn(res); // Log the full response for debugging
+        
+        // Check if there are any errors with invitees
         if (res.errorInvitees.length) {
+          console.log("Error invitees:", res.errorInvitees); // Log the invitees that caused the error
           alert("The user does not exist or is offline.");
           return;
         }
       })
       .catch((err) => {
-        console.error(err);
+        console.error(err); // Log the error for debugging
         return;
       });
   }
+  
 
   return (
     <div>
-    <PhoneIcon 
+    <PhoneIcon
       className="w-4 h-4 cursor-pointer" 
       onClick={() => {
         handleSend(ZegoUIKitPrebuilt.InvitationTypeVideoCall);

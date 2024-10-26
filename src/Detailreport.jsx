@@ -43,420 +43,82 @@ import {
   XMarkIcon,
 } from "@heroicons/react/16/solid";
 
-import { Box, Button } from '@mui/material';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import { jsPDF } from 'jspdf'; //or use your library of choice here
-import autoTable from 'jspdf-autotable';
+import { Box, Button } from "@mui/material";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import { jsPDF } from "jspdf"; //or use your library of choice here
+import autoTable from "jspdf-autotable";
 
-const Detailreport = () => {
-  const simpleData = useMemo(
-    () => [
-      {
-        exercise: "Leg Extension",
-        cycles: "",
-        minangle: "",
-        maxangle: "",
-        rom: "",
-        painscore: "",
-        subRows: [
-          {
-            exercise: "",
-            cycles: "1",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "2",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "3",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "4",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "5",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "6",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-        ],
-      },
-      {
-        exercise: "Sit Stand",
-        cycles: "",
-        minangle: "",
-        maxangle: "",
-        rom: "",
-        painscore: "",
-        subRows: [
-          {
-            exercise: "",
-            cycles: "1",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "2",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "3",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-        ],
-      },
-      {
-        exercise: "Leg Extension",
-        cycles: "",
-        minangle: "",
-        maxangle: "",
-        rom: "",
-        painscore: "",
-        subRows: [
-          {
-            exercise: "",
-            cycles: "1",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "2",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "3",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "4",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "5",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "6",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-        ],
-      },
-      {
-        exercise: "Sit Stand",
-        cycles: "",
-        minangle: "",
-        maxangle: "",
-        rom: "",
-        painscore: "",
-        subRows: [
-          {
-            exercise: "",
-            cycles: "1",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "2",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "3",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-        ],
-      },
-      {
-        exercise: "Leg Extension",
-        cycles: "",
-        minangle: "",
-        maxangle: "",
-        rom: "",
-        painscore: "",
-        subRows: [
-          {
-            exercise: "",
-            cycles: "1",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "2",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "3",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "4",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "5",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "6",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-        ],
-      },
-      {
-        exercise: "Sit Stand",
-        cycles: "",
-        minangle: "",
-        maxangle: "",
-        rom: "",
-        painscore: "",
-        subRows: [
-          {
-            exercise: "",
-            cycles: "1",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "2",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "3",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-        ],
-      },
-      {
-        exercise: "Leg Extension",
-        cycles: "",
-        minangle: "",
-        maxangle: "",
-        rom: "",
-        painscore: "",
-        subRows: [
-          {
-            exercise: "",
-            cycles: "1",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "2",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "3",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "4",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "5",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "6",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-        ],
-      },
-      {
-        exercise: "Sit Stand",
-        cycles: "",
-        minangle: "",
-        maxangle: "",
-        rom: "",
-        painscore: "",
-        subRows: [
-          {
-            exercise: "",
-            cycles: "1",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "2",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-          {
-            exercise: "",
-            cycles: "3",
-            minangle: "0",
-            maxangle: "90",
-            rom: "90",
-            painscore: "6",
-          },
-        ],
-      },
-    ],
-    []
-  );
+const Detailreport = (assessment, index, reportData, selected) => {
+  const [isFirstRender, setIsFirstRender] = useState(true);
 
-  const overviewRow = {
-    firstName: "OVERVIEW", // Or any placeholder to merge
-    lastName: "",
-    address: "",
-    city: "",
-    state: "",
+  // This effect runs after the first render
+  useEffect(() => {
+    setIsFirstRender(false);
+  }, []);
+
+  const calculateProgress = () => {
+    const exercises =
+      assessment.selected === "assessment"
+        ? assessment.assessment.exercises
+        : assessment.selected === "model_recovery"
+        ? assessment.assessment.Exercise
+        : {};
+
+    const totalExercises = 8; // Set total exercises to 8
+
+    // Count the number of defined exercises
+    const definedExercisesCount = Object.keys(exercises).length;
+
+    // Calculate the completion percentage based on defined exercises
+    const progress = (definedExercisesCount / totalExercises) * 100;
+
+    // Calculate remaining exercises as total minus defined
+    const remaining = totalExercises - definedExercisesCount;
+
+    return {
+      progress,
+      remaining,
+    };
   };
+
+  // Get the calculated progress and remaining values
+  const { progress, remaining } = calculateProgress();
+
+  const simpleData = useMemo(() => {
+    const exercises =
+      assessment.selected === "model_recovery"
+        ? assessment.assessment.Exercise // Access the 'Exercise' object directly
+        : assessment.assessment.exercises; // Fallback to 'exercises'
+
+    return Object.entries(exercises).map(([exercise, data]) => ({
+      exercise,
+      cycles: isFirstRender ? "" : "", // Empty on first render
+      minangle: isFirstRender ? "" : "", // Empty on first render
+      maxangle: isFirstRender ? "" : "", // Empty on first render
+      rom: isFirstRender ? "" : data.rom || "", // Use ROM value from the data
+      painscore: isFirstRender ? "" : (data.pain && data.pain[0]) || "", // Use first pain score if available
+      subRows:
+        data.values.length > 0
+          ? data.values.map((value, index) => ({
+              exercise: "",
+              cycles: (index + 1).toString(), // Incrementing cycle number
+              minangle: "0", // You can change this logic if needed
+              maxangle: "90", // You can change this logic if needed
+              rom: data.rom, // Use ROM value from the data
+              painscore: data.pain[index] || "N/A", // Use pain data if available
+            }))
+          : [], // If no values, return an empty array
+    }));
+  }, [assessment, isFirstRender]);
 
   const columns = useMemo(
     () => [
-      {
-        header: "EXERCISE",
-        accessorKey: "exercise",
-      },
-      {
-        header: "Cycles",
-        accessorKey: "cycles",
-      },
-      {
-        header: "Min Angle",
-        accessorKey: "minangle",
-      },
-      {
-        header: "Max Angle",
-        accessorKey: "maxangle",
-      },
-      {
-        header: "ROM",
-        accessorKey: "rom",
-      },
-      {
-        header: "Pain Score",
-        accessorKey: "painscore",
-      },
+      { accessorKey: "exercise", header: "Exercise" },
+      { accessorKey: "cycles", header: "Cycles" },
+      { accessorKey: "minangle", header: "Min Angle" },
+      { accessorKey: "maxangle", header: "Max Angle" },
+      { accessorKey: "rom", header: "ROM" },
+      { accessorKey: "painscore", header: "Pain Score" },
     ],
     []
   );
@@ -471,7 +133,7 @@ const Detailreport = () => {
       body: tableData,
     });
 
-    doc.save('mrt-pdf-example.pdf');
+    doc.save("mrt-pdf-example.pdf");
   };
 
   const table = useMaterialReactTable({
@@ -484,43 +146,66 @@ const Detailreport = () => {
     initialState: { expanded: false },
     paginateExpandedRows: false,
     muiTableHeadCellProps: {
-        //simple styling with the `sx` prop, works just like a style prop in this example
-        sx: {
-          fontWeight: 'bold',
-          fontSize: '15px',
-          fontFamily: "Poppins"
-        },
+      //simple styling with the `sx` prop, works just like a style prop in this example
+      sx: {
+        fontWeight: "bold",
+        fontSize: "15px",
+        fontFamily: "Poppins",
       },
-      muiTableBodyCellProps:{
-        sx:{
-            fontFamily:"Poppins",
-            fontSize:"14px",
-            fontWeight:"medium"
-        },
+    },
+    muiTableBodyCellProps: {
+      sx: {
+        fontFamily: "Poppins",
+        fontSize: "14px",
+        fontWeight: "medium",
       },
-       renderTopToolbarCustomActions: ({ table }) => (
+    },
+    renderTopToolbarCustomActions: ({ table }) => (
       <p
         sx={{
-          display: 'flex',
-          gap: '16px',
-          padding: '8px',
-          flexWrap: 'wrap',
+          display: "flex",
+          gap: "16px",
+          padding: "8px",
+          flexWrap: "wrap",
         }}
         className="font-poppins font-bold text-[#7075DB] my-auto"
-                style={{ letterSpacing: "4px" }}
-      >OVERVIEW</p>
-
+        style={{ letterSpacing: "4px" }}
+      >
+        OVERVIEW
+      </p>
     ),
-
   });
-
-  const [progress, setProgress] = useState(75); // Example progress value
   const [isOpen, setIsOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState(null);
-  const exercises = ["Exercise 1", "Exercise 2", "Exercise 3"];
-  const handleSelectItem = (exercise) => {
-    setSelectedItems(exercise);
-    setIsOpen(false); // Optionally close dropdown after selection
+  const [chartData, setChartData] = useState([]);
+
+  const handleSelectItem = (exerciseName) => {
+    setSelectedItems(exerciseName);
+    setIsOpen(false);
+
+    // Initialize variable to hold selected exercise data
+    let selectedExerciseData;
+
+    // Check the selected type in assessment
+    if (assessment.selected === "assessment") {
+      selectedExerciseData = assessment.assessment.exercises[
+        exerciseName
+      ].values.map((value, index) => ({
+        name: index, // Customize X-axis label
+        value: value,
+      }));
+    } else if (assessment.selected === "model_recovery") {
+      // Access exercise data from model recovery
+      selectedExerciseData = assessment.assessment.Exercise[
+        exerciseName
+      ].values.map((value, index) => ({
+        name: index, // Customize X-axis label if needed
+        value: value,
+      }));
+    }
+
+    console.log(selectedExerciseData);
+    setChartData(selectedExerciseData);
   };
 
   // Clamp the progress between 0 and 100
@@ -591,50 +276,10 @@ const Detailreport = () => {
     },
   ];
 
-  const data1 = [
-    {
-      name: "Page A",
-      uv: 4000,
-      pv: 2400,
-      amt: 2400,
-    },
-    {
-      name: "Page B",
-      uv: 3000,
-      pv: 1398,
-      amt: 2210,
-    },
-    {
-      name: "Page C",
-      uv: 2000,
-      pv: 9800,
-      amt: 2290,
-    },
-    {
-      name: "Page D",
-      uv: 2780,
-      pv: 3908,
-      amt: 2000,
-    },
-    {
-      name: "Page E",
-      uv: 1890,
-      pv: 4800,
-      amt: 2181,
-    },
-    {
-      name: "Page F",
-      uv: 2390,
-      pv: 3800,
-      amt: 2500,
-    },
-    {
-      name: "Page G",
-      uv: 3490,
-      pv: 4300,
-      amt: 2100,
-    },
-  ];
+  const exercises =
+    assessment.selected === "assessment"
+      ? assessment.assessment.exercises
+      : assessment.reportData.Model_Recovery[0].Exercise;
 
   return (
     <div className="w-full h-full flex flex-col gap-4">
@@ -718,19 +363,26 @@ const Detailreport = () => {
         <div className="w-[95%] h-full mx-auto flex flex-col gap-6 pr-4 overflow-y-scroll scrollbar-custom3">
           <div className="w-full h-20 flex flex-row justify-between py-4">
             <div className="flex flex-row font-poppins font-semibold text-base text-[#475467] gap-2 items-center justify-center">
-              <p>Raj Ronald Shaw</p>
+              <p>{assessment.reportData.user_id}</p>
               <p>|</p>
-              <p>EXERCISE: Recovery 1</p>
+              <p>
+                {" "}
+                {assessment.selected == "assessment" ? (
+                  <p>Assessment-{assessment.index + 1}</p>
+                ) : (
+                  <p>{assessment.assessment.Title}</p>
+                )}
+              </p>
             </div>
             <div className="flex flex-col gap-4">
               <div className="font-poppins font-bold text-sm flex flex-row justify-between items-center gap-6">
-                <p className="text-[#FF5647]">30%</p>
+                <p className="text-[#FF5647]">{Math.round(progress)}%</p>
                 <p className="text-[#2B2D2E]">Completed Exercises</p>
-                <p className="text-[#8FA7B8]">7 left</p>
+                <p className="text-[#8FA7B8]">{remaining} left</p>
               </div>
               <div className="w-full bg-[#C7D3EB] h-2">
                 <div
-                  className="bg-[#FF5747] h-2 "
+                  className="bg-[#FF5747] h-2"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -929,12 +581,12 @@ const Detailreport = () => {
             <div className="w-[69.25%] h-full flex flex-col gap-1 bg-white rounded-lg px-4 py-4">
               <div className="w-full flex flex-row justify-between items-center">
                 <p className="w-1/2 font-poppins font-medium text-lg">
-                  Recovery 1
+                  Assessment-{assessment.index + 1}
                 </p>
                 <div className="w-1/2 mx-auto my-auto relative">
-                  <div className="flex flex-row gap-2 justify-end items-center  pr-4 w-full">
+                  <div className="flex flex-row gap-2 justify-end items-center pr-4 w-full">
                     <div
-                      className="w-1/2 flex justify-between items-center bg-white border-[#D5D5D5] border-[1px] rounded-lg px-4 py-2 cursor-pointer gap-2 "
+                      className="w-1/2 flex justify-between items-center bg-white border-[#D5D5D5] border-[1px] rounded-lg px-4 py-2 cursor-pointer gap-2"
                       onClick={() => setIsOpen(!isOpen)}
                     >
                       <p className="font-poppins font-medium text-black text-sm">
@@ -956,17 +608,22 @@ const Detailreport = () => {
                       } overflow-hidden`}
                     >
                       <ul>
-                        {exercises.map((exercise, index) => (
-                          <li
-                            key={index}
-                            className={`py-1 cursor-pointer ${
-                              selectedItems === exercise ? "font-medium" : ""
-                            }`}
-                            onClick={() => handleSelectItem(exercise)}
-                          >
-                            {exercise}
-                          </li>
-                        ))}
+                        {Object.entries(exercises).map(
+                          ([exerciseName], index) => (
+                            <li
+                              key={index}
+                              className={`py-1 cursor-pointer ${
+                                selectedItems === exerciseName
+                                  ? "font-medium"
+                                  : ""
+                              }`}
+                              onClick={() => handleSelectItem(exerciseName)}
+                            >
+                              {exerciseName.charAt(0).toUpperCase() +
+                                exerciseName.slice(1)}
+                            </li>
+                          )
+                        )}
                       </ul>
                     </div>
                   )}
@@ -977,7 +634,7 @@ const Detailreport = () => {
                 <AreaChart
                   width={200}
                   height={300}
-                  data={data1}
+                  data={chartData} // Use chartData state for the AreaChart
                   margin={{
                     top: 20,
                     right: 30,
@@ -1002,24 +659,14 @@ const Detailreport = () => {
                     tick={{ fontFamily: "Poppins", fontSize: 12 }}
                   />
                   <Tooltip
-                    contentStyle={{
-                      fontFamily: "Poppins",
-                      fontSize: 12,
-                    }}
+                    contentStyle={{ fontFamily: "Poppins", fontSize: 12 }}
                   />
                   <Area
                     type="monotone"
-                    dataKey="uv"
+                    dataKey="value"
                     stackId="1"
                     stroke="#FF8F6D"
                     fill="#FF8F6D"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="pv"
-                    stackId="1"
-                    stroke="#DBA5FF"
-                    fill="#DBA5FF"
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -1028,11 +675,7 @@ const Detailreport = () => {
           </div>
           <div className="w-full h-[5%] ">
             <div className="w-full h-[720px] overflow-y-auto scrollbar-custom3">
-              <MaterialReactTable
-                table={table}
-                className=" mrt-table"
-                
-              />
+              <MaterialReactTable table={table} className=" mrt-table" />
             </div>
           </div>
         </div>
