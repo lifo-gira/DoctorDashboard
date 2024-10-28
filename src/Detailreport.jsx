@@ -49,6 +49,9 @@ import { jsPDF } from "jspdf"; //or use your library of choice here
 import autoTable from "jspdf-autotable";
 
 const Detailreport = (assessment, index, reportData, selected) => {
+  var storedData = localStorage.getItem("user");
+  var parsedData = JSON.parse(storedData);
+  var userName = parsedData.user_id;
   const [isFirstRender, setIsFirstRender] = useState(true);
 
   // This effect runs after the first render
@@ -63,11 +66,16 @@ const Detailreport = (assessment, index, reportData, selected) => {
         : assessment.selected === "model_recovery"
         ? assessment.assessment.Exercise
         : {};
+    console.log(assessment.assessment.Exercise);
+    let totalExercises,definedExercisesCount; // Set total exercises to 8
 
-    const totalExercises = 8; // Set total exercises to 8
-
-    // Count the number of defined exercises
-    const definedExercisesCount = Object.keys(exercises).length;
+    if(assessment.selected === "assessment"){
+      totalExercises = 8;
+      definedExercisesCount = Object.keys(exercises).length;
+    }else{
+      totalExercises = Object.keys(assessment.reportData.Exercise_Assigned).length;     
+      definedExercisesCount = Object.keys(exercises).length;
+    } 
 
     // Calculate the completion percentage based on defined exercises
     const progress = (definedExercisesCount / totalExercises) * 100;
@@ -353,7 +361,7 @@ const Detailreport = (assessment, index, reportData, selected) => {
                 className="w-8 h-8 rounded-full "
               />
               <h2 className="text-base font-semibold text-gray-800 flex items-center">
-                Doctor
+                {userName}
               </h2>
             </div>
           </div>
