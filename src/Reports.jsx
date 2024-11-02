@@ -208,6 +208,7 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
 
   // Calculate the position as a percentage of the total range
   const calculatePosition = () => {
+    const bmiValue = reportData.PersonalDetails.BMI;
     const clampedValue = Math.min(Math.max(bmiValue, minBMI), maxBMI); // Ensure value is within range
     return ((clampedValue - minBMI) / (maxBMI - minBMI)) * 100;
   };
@@ -624,21 +625,21 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
                           |
                         </p>
                         <p className="font-poppins font-semibold text-white text-lg">
-                          Andrew
+                          {reportData.user_id}
                         </p>
                       </div>
                       <div className="flex flex-row gap-10">
                         <div className="flex flex-row gap-2">
                           <p className="font-poppins font-medium text-white text-base">
-                            35
+                            {reportData.PersonalDetails.Age}
                           </p>
                           <p className="font-poppins font-medium text-white text-base">
-                            Male
+                            {reportData.PersonalDetails.Gender}
                           </p>
                         </div>
                         <div>
                           <p className="font-poppins font-medium text-white text-base">
-                            PAT14AD
+                            {reportData.unique_id}
                           </p>
                         </div>
                       </div>
@@ -739,7 +740,7 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
                               Height
                             </p>
                             <p className="font-poppins font-normal text-xs text-black">
-                              170 cm
+                              {reportData.PersonalDetails.Height} cm
                             </p>
                           </div>
                         </div>
@@ -836,7 +837,7 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
                               Weight
                             </p>
                             <p className="font-poppins font-normal text-xs text-black">
-                              72 Kg
+                              {reportData.PersonalDetails.Weight} Kg
                             </p>
                           </div>
                         </div>
@@ -845,30 +846,50 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
                         <p className="font-poppins font-normal text-sm text-white">
                           Body Mass Index (BMI)
                         </p>
+
+                        {/* BMI Value and Health Label */}
                         <div className="flex flex-row w-full justify-between">
                           <p className="font-poppins font-normal text-lg text-white">
-                            24.9
+                            {reportData.PersonalDetails.BMI}
                           </p>
-                          <p className="bg-[#D6FFDD] text-black font-poppins font-normal text-sm px-2 flex items-center justify-center rounded-lg">
-                            Healthy
+                          <p
+                            className={`${
+                              reportData.PersonalDetails.BMI < 18.5
+                                ? "bg-[#FFDDDD] text-black"
+                                : reportData.PersonalDetails.BMI < 24.9
+                                ? "bg-[#D6FFDD] text-black"
+                                : reportData.PersonalDetails.BMI < 29.9
+                                ? "bg-[#FFE7B2] text-black"
+                                : "bg-[#FFB2B2] text-black"
+                            } font-poppins font-normal text-sm px-2 flex items-center justify-center rounded-lg`}
+                          >
+                            {reportData.PersonalDetails.BMI < 18.5
+                              ? "Underweight"
+                              : reportData.PersonalDetails.BMI < 24.9
+                              ? "Healthy"
+                              : reportData.PersonalDetails.BMI < 29.9
+                              ? "Overweight"
+                              : "Obese"}
                           </p>
                         </div>
+
+                        {/* Gradient Bar with Indicator */}
                         <div className="flex flex-col items-center gap-2 w-full font-poppins font-medium">
                           <div
-                            className="relative w-full h-2 rounded-full "
+                            className="relative w-full h-2 rounded-full"
                             style={{
                               background:
                                 "linear-gradient(to right, blue, green, yellow, orange, red)",
                             }}
                           >
-                            {/* Indicator dot */}
+                            {/* Indicator Dot */}
                             <div
                               className="absolute top-[-6px] bg-red-500 w-4 h-4 rounded-full border-2 border-white"
                               style={{ left: `${calculatePosition()}%` }}
                             ></div>
                           </div>
 
-                          {/* Values below the bar */}
+                          {/* Values Below the Bar */}
                           <div className="flex justify-between w-full px-1 text-gray-300 text-xs font-semibold">
                             <span>15</span>
                             <span>21</span>
