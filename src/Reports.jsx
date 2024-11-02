@@ -28,6 +28,8 @@ import {
   Cell,
 } from "recharts";
 
+import Xray from "./Assets/xray.png";
+
 const data1 = [
   [
     { name: "Group A", value: 700 },
@@ -87,6 +89,11 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
   const [selectedIndex, setSelectedIndex] = useState(null);
   console.log(reportData);
   const [isToggled, setIsToggled] = useState(false);
+
+  const toggleSlideBar = () => {
+    setIsOpe(!isOpe);
+  };
+  const togglePopup = () => {};
   const handleToggle = () => {
     setIsToggled(!isToggled);
   };
@@ -193,6 +200,17 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
   // Get the average ROM
   const averageROM = calculateAverageROM(data);
   console.log("Average ROM:", averageROM);
+
+  const [bmiValue, setBmiValue] = useState(40);
+  // Minimum and maximum BMI values for the range
+  const minBMI = 15;
+  const maxBMI = 42.5;
+
+  // Calculate the position as a percentage of the total range
+  const calculatePosition = () => {
+    const clampedValue = Math.min(Math.max(bmiValue, minBMI), maxBMI); // Ensure value is within range
+    return ((clampedValue - minBMI) / (maxBMI - minBMI)) * 100;
+  };
 
   return (
     <div className="w-full h-full">
@@ -567,6 +585,433 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
                 )}
               </div>
             )}
+          </div>
+        </div>
+        <div className="fixed right-0 top-1/2 transform -translate-y-1/2 h-[95%] flex items-center z-50">
+          {/* Slidebar container */}
+          <div
+            className={`bg-[#475467] h-full transition-width duration-500 flex items-center mr-2 relative ${
+              isOpe ? "w-96" : "w-20"
+            } rounded-l-xl`}
+          >
+            {/* Chevron Button/Icon */}
+            <div
+              className={`absolute -left-[20px] top-1/2 transform -translate-y-1/2 bg-[#475467] cursor-pointer rounded-full border-2 border-[#475467] p-1 z-0`}
+              onClick={toggleSlideBar}
+            >
+              <ChevronLeftIcon
+                className={`h-8 w-8 text-white transform transition-transform duration-300 ${
+                  isOpe ? "rotate-180" : "rotate-0"
+                }`}
+              />
+            </div>
+
+            {/* Slidebar Items */}
+            <div
+              className={`w-full h-[100%] flex flex-col px-5 overflow-y-auto scrollbar-custom3 gap-6 ${
+                isOpe ? "justify-center" : "justify-center"
+              }`}
+            >
+              {isOpe ? (
+                <div className="flex flex-col " onClick={togglePopup}>
+                  <div className="w-full flex flex-col gap-5">
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex flex-row gap-2">
+                        <p className="font-poppins font-semibold text-white text-lg">
+                          Patient Name
+                        </p>
+                        <p className="font-poppins font-semibold text-white text-lg">
+                          |
+                        </p>
+                        <p className="font-poppins font-semibold text-white text-lg">
+                          Andrew
+                        </p>
+                      </div>
+                      <div className="flex flex-row gap-10">
+                        <div className="flex flex-row gap-2">
+                          <p className="font-poppins font-medium text-white text-base">
+                            35
+                          </p>
+                          <p className="font-poppins font-medium text-white text-base">
+                            Male
+                          </p>
+                        </div>
+                        <div>
+                          <p className="font-poppins font-medium text-white text-base">
+                            PAT14AD
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="w-full flex flex-row gap-4">
+                      <div className="w-2/5 flex flex-col gap-3">
+                        <div className="w-full h-16 rounded-xl bg-[#BBFFC2] p-2 gap-1 flex flex-col">
+                          <div className="w-full flex justify-end">
+                            <svg
+                              width="95"
+                              height="23"
+                              viewBox="0 0 95 23"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <rect
+                                x="0.425049"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                                fill-opacity="0.28"
+                              />
+                              <rect
+                                x="11.975"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                                fill-opacity="0.4"
+                              />
+                              <rect
+                                x="23.525"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                                fill-opacity="0.7"
+                              />
+                              <rect
+                                x="35.075"
+                                y="0.611328"
+                                width="1.925"
+                                height="22.2873"
+                                rx="0.9625"
+                                fill="#D16564"
+                              />
+                              <rect
+                                x="46.625"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                              />
+                              <rect
+                                x="58.175"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                              />
+                              <rect
+                                x="69.725"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                              />
+                              <rect
+                                x="81.275"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                                fill-opacity="0.6"
+                              />
+                              <rect
+                                x="92.825"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                                fill-opacity="0.3"
+                              />
+                            </svg>
+                          </div>
+                          <div className="w-full flex flex-row gap-2">
+                            <p className="font-poppins font-semibold text-xs text-black">
+                              Height
+                            </p>
+                            <p className="font-poppins font-normal text-xs text-black">
+                              170 cm
+                            </p>
+                          </div>
+                        </div>
+                        <div className="w-full h-16 rounded-xl bg-[#6BD4DE] p-2 gap-1 flex flex-col">
+                          <div className="w-full flex justify-end">
+                            <svg
+                              width="95"
+                              height="23"
+                              viewBox="0 0 95 23"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <rect
+                                x="0.425049"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                                fill-opacity="0.28"
+                              />
+                              <rect
+                                x="11.975"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                                fill-opacity="0.4"
+                              />
+                              <rect
+                                x="23.525"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                                fill-opacity="0.7"
+                              />
+                              <rect
+                                x="35.075"
+                                y="0.611328"
+                                width="1.925"
+                                height="22.2873"
+                                rx="0.9625"
+                                fill="#D16564"
+                              />
+                              <rect
+                                x="46.625"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                              />
+                              <rect
+                                x="58.175"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                              />
+                              <rect
+                                x="69.725"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                              />
+                              <rect
+                                x="81.275"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                                fill-opacity="0.6"
+                              />
+                              <rect
+                                x="92.825"
+                                y="0.611328"
+                                width="1.925"
+                                height="10.1306"
+                                rx="0.9625"
+                                fill="#282828"
+                                fill-opacity="0.3"
+                              />
+                            </svg>
+                          </div>
+                          <div className="w-full flex flex-row gap-2">
+                            <p className="font-poppins font-semibold text-xs text-black">
+                              Weight
+                            </p>
+                            <p className="font-poppins font-normal text-xs text-black">
+                              72 Kg
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-3/5 rounded-xl bg-[#4A4949] flex flex-col py-3 px-4 justify-between">
+                        <p className="font-poppins font-normal text-sm text-white">
+                          Body Mass Index (BMI)
+                        </p>
+                        <div className="flex flex-row w-full justify-between">
+                          <p className="font-poppins font-normal text-lg text-white">
+                            24.9
+                          </p>
+                          <p className="bg-[#D6FFDD] text-black font-poppins font-normal text-sm px-2 flex items-center justify-center rounded-lg">
+                            Healthy
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-center gap-2 w-full font-poppins font-medium">
+                          <div
+                            className="relative w-full h-2 rounded-full "
+                            style={{
+                              background:
+                                "linear-gradient(to right, blue, green, yellow, orange, red)",
+                            }}
+                          >
+                            {/* Indicator dot */}
+                            <div
+                              className="absolute top-[-6px] bg-red-500 w-4 h-4 rounded-full border-2 border-white"
+                              style={{ left: `${calculatePosition()}%` }}
+                            ></div>
+                          </div>
+
+                          {/* Values below the bar */}
+                          <div className="flex justify-between w-full px-1 text-gray-300 text-xs font-semibold">
+                            <span>15</span>
+                            <span>21</span>
+                            <span>26</span>
+                            <span>31</span>
+                            <span>40</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-full flex flex-row p-2 gap-2">
+                      <div className="w-2/5 flex flex-col gap-4">
+                        <p className="font-poppins font-semibold text-lg text-white">
+                          DEFORMITY: VARUS
+                        </p>
+                        <div className="bg-white rounded-lg flex flex-col p-2 gap-1 h-24 justify-center">
+                          <p className="font-poppins font-semibold text-base text-[#5F5F5F]">
+                            Tibofemoral Angle
+                          </p>
+                          <div className="flex flex-row justify-between">
+                            <p className="font-poppins font-normal text-lg text-black">
+                              2.58°
+                            </p>
+                            <svg
+                              width="25"
+                              height="25"
+                              viewBox="0 0 25 25"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <g clip-path="url(#clip0_1595_1333)">
+                                <path
+                                  d="M13.9812 8.14148V20.3135H11.9812V8.14148L6.61725 13.5055L5.20325 12.0915L12.9812 4.31348L20.7592 12.0915L19.3452 13.5055L13.9812 8.14148Z"
+                                  fill="#E95D5C"
+                                />
+                              </g>
+                              <defs>
+                                <clipPath id="clip0_1595_1333">
+                                  <rect
+                                    width="24"
+                                    height="24"
+                                    fill="white"
+                                    transform="translate(0.981201 0.313477)"
+                                  />
+                                </clipPath>
+                              </defs>
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-lg flex flex-col p-2 gap-1 h-24 justify-center">
+                          <p className="font-poppins font-semibold text-base text-[#5F5F5F] w-full text-center">
+                            MAD
+                          </p>
+                          <div className="flex flex-row justify-between">
+                            <p className="font-poppins font-normal text-lg text-black">
+                              2.58°
+                            </p>
+                            <svg
+                              width="25"
+                              height="25"
+                              viewBox="0 0 25 25"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <g clip-path="url(#clip0_1595_1333)">
+                                <path
+                                  d="M13.9812 8.14148V20.3135H11.9812V8.14148L6.61725 13.5055L5.20325 12.0915L12.9812 4.31348L20.7592 12.0915L19.3452 13.5055L13.9812 8.14148Z"
+                                  fill="#E95D5C"
+                                />
+                              </g>
+                              <defs>
+                                <clipPath id="clip0_1595_1333">
+                                  <rect
+                                    width="24"
+                                    height="24"
+                                    fill="white"
+                                    transform="translate(0.981201 0.313477)"
+                                  />
+                                </clipPath>
+                              </defs>
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-lg flex flex-col p-2 gap-1 h-24 justify-center">
+                          <p className="font-poppins font-semibold text-base text-[#5F5F5F] w-full text-center">
+                            HKA
+                          </p>
+                          <div className="flex flex-row justify-between">
+                            <p className="font-poppins font-normal text-lg text-black">
+                              42.5
+                            </p>
+                            <svg
+                              width="25"
+                              height="25"
+                              viewBox="0 0 25 25"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <g clip-path="url(#clip0_1595_1347)">
+                                <path
+                                  d="M13.4812 16.5265L18.8452 11.1625L20.2592 12.5765L12.4812 20.3545L4.70325 12.5765L6.11725 11.1625L11.4812 16.5265V4.35449H13.4812V16.5265Z"
+                                  fill="#90DF9E"
+                                />
+                              </g>
+                              <defs>
+                                <clipPath id="clip0_1595_1347">
+                                  <rect
+                                    width="24"
+                                    height="24"
+                                    fill="white"
+                                    transform="translate(0.481201 0.354492)"
+                                  />
+                                </clipPath>
+                              </defs>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-3/5 py-2 px-3 flex justify-center">
+                        <img src={Xray} alt="" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full flex flex-col gap-4">
+                  <div className="w-full flex flex-col font-poppins font-semibold text-base text-white items-center">
+                    {"XRAY".split("").map((letter, index) => (
+                      <span key={index} className="text-lg font-semibold">
+                        {letter}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="w-full flex flex-col font-poppins font-semibold text-base text-white items-center">
+                    {"REPORT".split("").map((letter, index) => (
+                      <span key={index} className="text-lg font-semibold">
+                        {letter}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
