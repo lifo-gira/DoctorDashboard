@@ -5,6 +5,7 @@ import Dashboard from "./Dashboard";
 import Schedule from "./Schedule";
 import RegimeBuilder from "./RegimeBuilder";
 import Sample from "./Sample";
+import Chatting from "./Chatting";
 import Events from "./Events";
 import Reports from "./Reports";
 import Detailreport from "./Detailreport";
@@ -17,6 +18,7 @@ import { jwtDecode as jwt_decode } from "jwt-decode";
 import VideoCall from "./VideoCall";
 import { ZIM } from "zego-zim-web";
 import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
+import { Chat } from "@zegocloud/zimkit-react";
 
 function App() {
   const [activeComponent, setActiveComponent] = useState("dashboard");
@@ -26,6 +28,11 @@ const [selectedPatient, setSelectedPatient] = useState(null);
 const [reportData, setReportData] = useState(null);
 const [regimeBuilderData, setRegimeBuilderData] = useState(null); // State to hold data for RegimeBuilder
 const [detailReportData, setDetailReportData] = useState(null);
+const [userName, setUserName] = useState("");
+const [password, setPassword] = useState("");
+const [isChecked, setIsChecked] = useState(false);
+const [isloged, setisloged] = useState(false);
+const [status, setStatus] = useState(null);
 
   const renderComponent = () => {
     switch (activeComponent) {
@@ -37,6 +44,8 @@ const [detailReportData, setDetailReportData] = useState(null);
         return <RegimeBuilder setCurrentPage={handleComponentChange} regimeData={regimeBuilderData} toReportPage={toReportPage}/>; 
       case "sample":
         return <Sample />;
+      case "chat":
+        return <Chatting uname={userName}/>;
       case "events":
         return <Events />;
         case "reports":
@@ -86,11 +95,7 @@ const [detailReportData, setDetailReportData] = useState(null);
     setReportData(data); // Store the received data in state
   };
 
-  const [userName, setUserName] = useState("");
-  const [password, setPassword] = useState("");
-  const [isChecked, setIsChecked] = useState(false);
-  const [isloged, setisloged] = useState(false);
-  const [status, setStatus] = useState(null);
+ 
 
   useEffect(() => {
     const loggedIn = localStorage.getItem('isLoggedIn');
@@ -393,32 +398,6 @@ const handleLoginchange = async () => {
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <g clip-path="url(#clip0_643_1720)">
-                    <path
-                      d="M2.71875 12.2495C2.71808 11.241 2.91635 10.2423 3.30221 9.31048C3.68807 8.3787 4.25395 7.53219 4.96743 6.81942C5.68091 6.10666 6.52799 5.54163 7.46015 5.1567C8.39231 4.77177 9.39125 4.5745 10.3998 4.57618L20.6411 4.57618C24.8823 4.57618 28.3221 8.02623 28.3221 12.2495V27.6192H10.3998C6.15856 27.6192 2.71875 24.1691 2.71875 19.9459V12.2495ZM25.7618 25.0589V12.2495C25.7584 10.8932 25.2176 9.59346 24.2578 8.6351C23.298 7.67674 21.9974 7.13787 20.6411 7.13652H10.3998C9.72747 7.13483 9.06147 7.26588 8.43994 7.52214C7.81842 7.7784 7.25359 8.15483 6.77786 8.62985C6.30212 9.10487 5.92484 9.66913 5.66765 10.2903C5.41046 10.9114 5.27841 11.5772 5.27909 12.2495V19.9459C5.28247 21.3022 5.8233 22.6019 6.7831 23.5603C7.7429 24.5186 9.04342 25.0575 10.3998 25.0589H25.7618ZM18.0808 14.8175H20.6411V17.3779H18.0808V14.8175ZM10.3998 14.8175H12.9601V17.3779H10.3998V14.8175Z"
-                      fill="white"
-                    />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_643_1720">
-                      <rect
-                        width="30.724"
-                        height="30.724"
-                        fill="white"
-                        transform="translate(0.158203 0.736328)"
-                      />
-                    </clipPath>
-                  </defs>
-                </svg>
-              </button>
-              <button >
-                <svg
-                  width="31"
-                  height="32"
-                  viewBox="0 0 31 32"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
                   <g clip-path="url(#clip0_643_1716)">
                     <path
                       d="M15.5204 29.0721C8.45006 29.0721 2.71875 23.3408 2.71875 16.2704C2.71875 10.5378 6.48628 5.686 11.6799 4.05507V6.77414C9.47922 7.66776 7.65738 9.29826 6.52604 11.3867C5.39471 13.4752 5.02418 15.8919 5.47784 18.2234C5.93149 20.5549 7.18114 22.6563 9.01303 24.1682C10.8449 25.6801 13.1452 26.5085 15.5204 26.5118C17.5607 26.5117 19.5546 25.9025 21.2464 24.7621C22.9383 23.6217 24.2511 22.0021 25.0167 20.1109H27.7358C26.1048 25.3046 21.253 29.0721 15.5204 29.0721ZM28.2581 17.5506H14.2403V3.53276C14.6614 3.49051 15.089 3.46875 15.5204 3.46875C22.5908 3.46875 28.3221 9.20006 28.3221 16.2704C28.3221 16.7018 28.3003 17.1294 28.2581 17.5506ZM16.8006 6.10845V14.9903H25.6824C25.3974 12.7341 24.37 10.6368 22.762 9.02882C21.154 7.4208 19.0567 6.3934 16.8006 6.10845Z"
@@ -437,6 +416,34 @@ const handleLoginchange = async () => {
                   </defs>
                 </svg>
               </button>
+
+              <button onClick={() => setActiveComponent("chat")}>
+                <svg
+                  width="31"
+                  height="32"
+                  viewBox="0 0 31 32"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <g clip-path="url(#clip0_643_1720)">
+                    <path
+                      d="M2.71875 12.2495C2.71808 11.241 2.91635 10.2423 3.30221 9.31048C3.68807 8.3787 4.25395 7.53219 4.96743 6.81942C5.68091 6.10666 6.52799 5.54163 7.46015 5.1567C8.39231 4.77177 9.39125 4.5745 10.3998 4.57618L20.6411 4.57618C24.8823 4.57618 28.3221 8.02623 28.3221 12.2495V27.6192H10.3998C6.15856 27.6192 2.71875 24.1691 2.71875 19.9459V12.2495ZM25.7618 25.0589V12.2495C25.7584 10.8932 25.2176 9.59346 24.2578 8.6351C23.298 7.67674 21.9974 7.13787 20.6411 7.13652H10.3998C9.72747 7.13483 9.06147 7.26588 8.43994 7.52214C7.81842 7.7784 7.25359 8.15483 6.77786 8.62985C6.30212 9.10487 5.92484 9.66913 5.66765 10.2903C5.41046 10.9114 5.27841 11.5772 5.27909 12.2495V19.9459C5.28247 21.3022 5.8233 22.6019 6.7831 23.5603C7.7429 24.5186 9.04342 25.0575 10.3998 25.0589H25.7618ZM18.0808 14.8175H20.6411V17.3779H18.0808V14.8175ZM10.3998 14.8175H12.9601V17.3779H10.3998V14.8175Z"
+                      fill="white"
+                    />
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_643_1720">
+                      <rect
+                        width="30.724"
+                        height="30.724"
+                        fill="white"
+                        transform="translate(0.158203 0.736328)"
+                      />
+                    </clipPath>
+                  </defs>
+                </svg>
+              </button>
+              
               <button >
                 <svg
                   width="33"
