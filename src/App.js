@@ -34,6 +34,10 @@ const [isChecked, setIsChecked] = useState(false);
 const [isloged, setisloged] = useState(false);
 const [status, setStatus] = useState(null);
 
+var storedData = localStorage.getItem("user");
+  var parsedData = JSON.parse(storedData);
+  var user = parsedData.user_id;
+
   const renderComponent = () => {
     switch (activeComponent) {
       case "dashboard":
@@ -45,7 +49,7 @@ const [status, setStatus] = useState(null);
       case "sample":
         return <Sample />;
       case "chat":
-        return <Chatting uname={userName}/>;
+        return <Chatting  uname={user}/>;
       case "events":
         return <Events />;
         case "reports":

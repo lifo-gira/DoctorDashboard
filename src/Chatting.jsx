@@ -3,11 +3,12 @@ import { ZIM } from "zego-zim-web";
 import { ZIMKitManager } from "@zegocloud/zimkit-react";
 import { PaperClipIcon, PaperAirplaneIcon, LinkIcon } from "@heroicons/react/16/solid";
 
-var appID = 1296580694;
+var appID = 1296580694; 
 ZIM.create({ appID });
 var zim = ZIM.getInstance();
 
 const Chatting = ({uname}) => {
+ 
   const [toUserId, setToUserId] = useState("");
   const [token, setToken] = useState("");
   const [userId, setUserId] = useState("");
@@ -25,7 +26,7 @@ const Chatting = ({uname}) => {
     const initChat = async () => {
       try {
         const zimKit = new ZIMKitManager();
-        const generatedUserId = `Anirudh123`;
+        const generatedUserId = `doctor001`;
         setUserId(uname);
         setUserName(uname);
 
@@ -94,13 +95,13 @@ const Chatting = ({uname}) => {
   }, [messages]);
 
   const handleLogin = () => {
-    console.log("user id", uname);
-    if (!token || !toUserId) {
+    if (!token || !userId) {
       console.warn("Token or User ID is missing.");
       return;
     }
     try {
-      const newUserDetails = { uname, userID: toUserId };
+      const newUserDetails = { uname, userID: userId };
+      console.log("user id", newUserDetails, token);
       zim
         .login(newUserDetails, token)
         .then(async function (res) {
