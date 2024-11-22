@@ -34,10 +34,6 @@ const [isChecked, setIsChecked] = useState(false);
 const [isloged, setisloged] = useState(false);
 const [status, setStatus] = useState(null);
 
-var storedData = localStorage.getItem("user");
-  var parsedData = JSON.parse(storedData);
-  var user = parsedData.user_id;
-
   const renderComponent = () => {
     switch (activeComponent) {
       case "dashboard":
@@ -49,7 +45,8 @@ var storedData = localStorage.getItem("user");
       case "sample":
         return <Sample />;
       case "chat":
-        return <Chatting  uname={user}/>;
+        return <Chatting uname={(() => { try { return JSON.parse(localStorage.getItem("user"))?.user_id; } catch (e) { return null; } })()} />
+        ;
       case "events":
         return <Events />;
         case "reports":
