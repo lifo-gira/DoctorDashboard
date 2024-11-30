@@ -1,14 +1,17 @@
 import React, { useEffect, useState, useRef } from "react";
 import { ZIM } from "zego-zim-web";
 import { ZIMKitManager } from "@zegocloud/zimkit-react";
-import { PaperClipIcon, PaperAirplaneIcon, LinkIcon } from "@heroicons/react/16/solid";
+import {
+  PaperClipIcon,
+  PaperAirplaneIcon,
+  LinkIcon,
+} from "@heroicons/react/16/solid";
 
-var appID = 1296580694; 
+var appID = 1296580694;
 ZIM.create({ appID });
 var zim = ZIM.getInstance();
 
-const Chatting = ({uname}) => {
- 
+const Chatting = ({ uname }) => {
   const [toUserId, setToUserId] = useState("");
   const [token, setToken] = useState("");
   const [userId, setUserId] = useState("");
@@ -20,13 +23,18 @@ const Chatting = ({uname}) => {
   const [conversationList, setConversationList] = useState([]);
   const [usersWhoMessagedMe, setUsersWhoMessagedMe] = useState([]);
   const [offlineMessageCounts, setOfflineMessageCounts] = useState({});
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [conversations, setConversations] = useState([]);
+  const [retryCount, setRetryCount] = useState({});
   const endOfMessagesRef = useRef(null);
+  var storedData = localStorage.getItem("user");
+  var parsedData = JSON.parse(storedData);
+  var generatedUserId = parsedData.user_id;
 
   useEffect(() => {
     const initChat = async () => {
       try {
         const zimKit = new ZIMKitManager();
-        const generatedUserId = `doctor001`;
         setUserId(uname);
         setUserName(uname);
 
@@ -83,16 +91,65 @@ const Chatting = ({uname}) => {
       }
     );
 
+    // Fetch the conversation list
+    var config = {
+      nextConversation: null, // Latest conversation
+      count: 20, // Fetch 20 conversations per query
+    };
+
+    zim.queryConversationList(config)
+      .then(function ({ conversationList }) {
+        // Query succeeded. Store and maintain the conversation objects.
+        console.log("Fetched conversations:", conversationList);
+        setConversations(conversationList); // Store the conversation list in state
+      })
+      .catch(function (err) {
+        // Query failed.
+        console.error("Error fetching conversation list:", err);
+      });
+
     return () => {
       zim.off("receivePeerMessage");
     };
   }, [userId]);
+  
 
   useEffect(() => {
     if (endOfMessagesRef.current) {
       endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
+  const [modalImage, setModalImage] = useState(null); // State to store the image URL for the modal
+
+  // Function to handle modal open when image is clicked
+  const handleImageClick = (imageUrl) => {
+    setModalImage(imageUrl); // Set the image to be shown in the modal
+    setIsModalOpen(true); // Open the modal
+  };
+
+  // Function to handle modal close when user clicks close button
+  const handleCloseModal = () => {
+    setIsModalOpen(false); // Close the modal
+    setModalImage(null); // Clear the modal image
+  };
+
+  const handleImageError = (msg, maxRetries = 3) => {
+    const currentRetries = retryCount[msg.fileDownloadUrl] || 0;
+    if (currentRetries < maxRetries) {
+      // Retry after a delay
+      setTimeout(() => {
+        setRetryCount((prevState) => ({
+          ...prevState,
+          [msg.fileDownloadUrl]: currentRetries + 1,
+        }));
+        console.log(`Retrying image load for: ${msg.fileDownloadUrl}`);
+      }, 2000); // Retry after 2 seconds
+    } else {
+      console.error(`Max retries reached for image: ${msg.fileDownloadUrl}`);
+    }
+  };
 
   const handleLogin = () => {
     if (!token || !userId) {
@@ -157,13 +214,9 @@ const Chatting = ({uname}) => {
         text: message.message,
         from: message.senderUserID === userId ? userId : toUserId,
         to: message.senderUserID === userId ? toUserId : userId,
-        type:
-          message.type === 11
-            ? "image"
-            : message.senderUserID === userId
-            ? "sent"
-            : "received",
-        fileDownloadUrl: message.fileDownloadUrl || null,
+        type: message.type === ZIM.MessageType.Image ? "image" : "received",
+        fileDownloadUrl:
+          message.fileDownloadUrl || message.extendedData?.fileUrl || null, // Fallback to extended data if needed
         fileName: message.fileName || null,
       }));
 
@@ -213,13 +266,24 @@ const Chatting = ({uname}) => {
     }
   };
 
-  const handleFileChange = (e) => {
-    if (e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
+  const handleFileChange = (event) => {
+    const file = event.target.files[0]; // Get the selected file
+
+    if (file) {
+      // Check if it's an image or a file and set it accordingly
+      if (file.type.startsWith("image/")) {
+        setSelectedImage(file);
+        setSelectedFile(null); // Clear any previously selected file
+      } else {
+        setSelectedFile(file);
+        setSelectedImage(null); // Clear any previously selected image
+      }
+
+      // After setting the selected file, automatically send the message
+      handleSendMessage(file);
     }
   };
-
-  const handleSendMessage = () => {
+  const handleSendMessage = (file = null) => {
     if (!toUserId) {
       console.warn("Recipient user ID is required");
       return;
@@ -237,33 +301,59 @@ const Chatting = ({uname}) => {
       };
       messageContent = "Text";
     }
-    // Check for image message
+    // Check for image message (if it's an image file)
     else if (selectedImage) {
       messageContent = "Image";
-
-      // Create the ZIMMediaMessage for image
       messageType = {
-        type: ZIM.MessageType.Image, // Image type
+        type: ZIM.MessageType.Image, // Image message type
         fileLocalPath: selectedImage, // Local image file
-        fileDownloadUrl: "", // Empty URL initially, to be set once uploaded
+        fileDownloadUrl: "", // Initially empty, to be updated after upload
         fileName: selectedImage.name,
         fileSize: selectedImage.size,
-        fileUID: "", // You can generate a UID or handle it based on your logic
+        fileUID: "", // Generate a unique ID for the image
       };
     }
-    // Check for file message
-    else if (selectedFile) {
-      messageContent = "File";
+    // Check for file message (if it's not an image, handle it as a file)
+    else if (file || selectedFile) {
+      const selected = file || selectedFile;
+      const fileType = selected.type;
+      const isImage = fileType.startsWith("image/");
+      const isPdf = fileType === "application/pdf";
 
-      // Create the ZIMMediaMessage for file
-      messageType = {
-        type: ZIM.MessageType.File, // File type
-        fileLocalPath: selectedFile, // Local file
-        fileDownloadUrl: "", // Empty URL initially, to be set once uploaded
-        fileName: selectedFile.name,
-        fileSize: selectedFile.size,
-        fileUID: "", // Unique ID for the file (handle as required)
-      };
+      if (isImage) {
+        // If the file is an image, send it as an image message
+        messageContent = "Image";
+        messageType = {
+          type: ZIM.MessageType.Image,
+          fileLocalPath: selected,
+          fileDownloadUrl: "",
+          fileName: selected.name,
+          fileSize: selected.size,
+          fileUID: "",
+        };
+      } else if (isPdf) {
+        // If the file is a PDF, send it as a file message and show preview link
+        messageContent = "PDF";
+        messageType = {
+          type: ZIM.MessageType.File,
+          fileLocalPath: selected,
+          fileDownloadUrl: "",
+          fileName: selected.name,
+          fileSize: selected.size,
+          fileUID: "",
+        };
+      } else {
+        // Handle other file types (e.g., DOCX, TXT, etc.)
+        messageContent = "File";
+        messageType = {
+          type: ZIM.MessageType.File,
+          fileLocalPath: selected,
+          fileDownloadUrl: "",
+          fileName: selected.name,
+          fileSize: selected.size,
+          fileUID: "",
+        };
+      }
     } else {
       console.warn("No valid message content");
       return;
@@ -295,10 +385,13 @@ const Chatting = ({uname}) => {
           fileName: message.fileName || null,
         };
 
+        // Display the media (image, PDF, or other files) in the chat
         setMessages((prevMessages) => [...prevMessages, updatedMessage]);
-        setNewMessage("");
-        setSelectedImage(null);
-        setSelectedFile(null);
+
+        // Reset input fields and clear selected media
+        setNewMessage(""); // Clear the new message
+        setSelectedImage(null); // Clear the selected image
+        setSelectedFile(null); // Clear the selected file
       })
       .catch((err) => {
         console.error(`Error sending ${messageContent} message:`, err);
@@ -309,32 +402,20 @@ const Chatting = ({uname}) => {
     document.getElementById("hidden-file-input").click(); // Trigger the hidden input
   };
 
+  const handleConversationClick = (conversation) => {
+    // Fetch and display messages for the selected conversation
+    setSelectedConversation(conversation);
+    // You may want to make an API call or use ZIM's query messages to fetch messages for the selected conversation.
+    setMessages([]); // Clear current messages
+  };
+
   return (
-    <div className="p-5 flex flex-col">
-      {/* <label className="p-2 font-bold">Token</label>
-      <input className="border p-2 m-2" value={token} readOnly />
-
-      <label className="p-2 font-bold">Your Name</label>
-      <input className="border p-2 m-2" value={userName} readOnly />
-
-      <label className="p-2 font-bold">User ID</label>
-      <input className="border p-2 m-2" value={userId} readOnly /> */}
-
-      {/* <button
-        onClick={handleLogin}
-        className="border p-2 m-2 bg-green-300 hover:bg-green-400"
-      >
-        Login
-      </button> */}
-
-      <div className="w-1/2 flex flex-row gap-4 items-center">
+    <div className="p-5 flex flex-col h-screen">
+     <div className="w-1/2 flex flex-row gap-4 items-center">
         <select
           className="border p-2 m-2 w-1/2 rounded-xl px-4"
           value={toUserId}
-          onChange={(e) => {
-            const selectedUserId = e.target.value;
-            setToUserId(selectedUserId); // Set the selected userId
-          }}
+          onChange={(e) => setToUserId(e.target.value)}
         >
           <option value="" disabled>
             Select a therapist
@@ -344,57 +425,72 @@ const Chatting = ({uname}) => {
           <option value="therapist3">Therapist 3</option>
         </select>
         <LinkIcon
-            className="upload-icon w-6 h-6 cursor-pointer"
-            onClick={handleLogin}
-          />
+          className="upload-icon w-6 h-6 cursor-pointer"
+          onClick={handleLogin}
+        />
       </div>
 
-      <div className="messages-list border p-2 m-2 max-h-96 overflow-y-auto">
+      <div
+        className="messages-list border p-2 m-2 flex-grow overflow-y-auto"
+        style={{ maxHeight: "80vh" }}
+      >
         {messages.map((msg, index) => (
           <div
             key={index}
             className={`p-2 m-1 ${
-              msg.from === userId
+              msg.from === uname
                 ? "text-right flex justify-end"
                 : "text-left flex justify-start"
             }`}
           >
             <div
               className={`message-bubble p-2 rounded-md ${
-                msg.from === userId ? "bg-blue-100" : "bg-gray-100"
+                msg.from === uname ? "bg-blue-100" : "bg-gray-100"
               }`}
             >
               <p
                 className={`font-bold ${
-                  msg.from === userId ? "text-blue-500" : "text-green-500"
+                  msg.from === uname ? "text-blue-500" : "text-green-500"
                 }`}
               >
-                {msg.from === userId ? "You" : `From: ${msg.from}`}
+                {msg.from === uname ? "You" : `From: ${msg.from}`}
               </p>
 
-              {/* Handle image messages */}
+              {/* Handle Image Messages */}
               {msg.type === "image" && msg.fileDownloadUrl ? (
                 <div
                   className={`${
-                    msg.from === userId ? "text-right" : "text-left"
+                    msg.from === uname ? "text-right" : "text-left"
                   }`}
                 >
                   <img
                     src={msg.fileDownloadUrl}
                     alt={msg.fileName}
-                    style={{
-                      maxWidth: "25%", // Adjust image size
-                      height: "auto", // Maintain aspect ratio
-                      display: "block", // Block display
-                    }}
-                    onError={(e) => {
-                      e.target.style.display = "none";
-                      console.error(
-                        "Image failed to load:",
-                        msg.fileDownloadUrl
-                      );
-                    }}
+                    onError={() => handleImageError(msg)} // Image error handling
+                    onClick={() => handleImageClick(msg.fileDownloadUrl)} // Open modal on image click
+                    className="max-w-[500px] max-h-[500px] rounded-md cursor-pointer" // Styling for the thumbnail
                   />
+
+                  {/* Full-Screen Modal for Images */}
+                  {isModalOpen && modalImage === msg.fileDownloadUrl && (
+                    <div className="fixed inset-0 bg-white flex justify-center items-center z-50">
+                      <div className="relative max-w-full max-h-full overflow-hidden">
+                        {/* Display the selected image in the modal */}
+                        <img
+                          src={modalImage} // Display the image that was clicked
+                          alt={msg.fileName}
+                          className="max-w-[95vw] max-h-[95vh] object-contain rounded-md" // Limit image size to 95% of the viewport size
+                        />
+                        {/* Close Button */}
+                        <button
+                          onClick={handleCloseModal} // Close modal
+                          className="absolute top-2 right-2 text-black bg-white bg-opacity-70 rounded-full p-8 text-4xl"
+                        >
+                          X
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (msg.type === "sent" || msg.type === "received") &&
                 msg.fileDownloadUrl ? (
@@ -403,10 +499,56 @@ const Chatting = ({uname}) => {
                     msg.from === userId ? "text-right" : "text-left"
                   }`}
                 >
-                  <a href={msg.fileDownloadUrl} download>
-                    {msg.fileName || "Download File"}
-                  </a>
-                  {console.log("File message details:", msg)}
+                  {/* File type previews */}
+                  <div>
+                    <p className="text-blue-500">
+                      {msg.fileName || "Unknown File"}
+                    </p>
+                  </div>
+
+                  {/* Render PDF Inline */}
+                  {msg.fileName && msg.fileName.endsWith(".pdf") ? (
+                    <iframe
+                      src={msg.fileDownloadUrl}
+                      title="PDF Preview"
+                      width="100%"
+                      height="100%x"
+                      frameBorder="0"
+                    ></iframe>
+                  ) : msg.fileName &&
+                    (msg.fileName.endsWith(".docx") ||
+                      msg.fileName.endsWith(".doc")) ? (
+                    <iframe
+                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(
+                        msg.fileDownloadUrl
+                      )}&embedded=true`}
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      title="Word Document Preview"
+                    ></iframe>
+                  ) : msg.fileName &&
+                    (msg.fileName.endsWith(".xls") ||
+                      msg.fileName.endsWith(".xlsx")) ? (
+                    <iframe
+                      src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+                        msg.fileDownloadUrl
+                      )}`}
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      title="Excel Document Preview"
+                    ></iframe>
+                  ) : (
+                    // If file type not supported for preview, show a download link
+                    <a
+                      href={msg.fileDownloadUrl}
+                      download={msg.fileName}
+                      className="text-blue-500 underline"
+                    >
+                      Download {msg.fileName}
+                    </a>
+                  )}
                 </div>
               ) : (
                 <p>{msg.text}</p>
@@ -414,45 +556,36 @@ const Chatting = ({uname}) => {
             </div>
           </div>
         ))}
-        <div ref={endOfMessagesRef} />
       </div>
 
-      <div className="w-3/4 flex flex-row items-center justify-center mx-auto">
-        <div className="file-uploader w-[2%] flex justify-center">
-          {/* Icon to trigger the file input */}
-          <PaperClipIcon
-            className="upload-icon w-6 h-6 cursor-pointer"
-            onClick={handleClick}
-          />
-          {/* Hidden input */}
-          <input
-            type="file"
-            id="hidden-file-input"
-            accept="image/*,application/pdf,.doc,.docx,.xlsx,.txt"
-            onChange={handleFileChange}
-            style={{ display: "none" }} // Hides the input
-            multiple
-          />
-        </div>
 
-        {/* <label className="p-2 font-bold">New Message</label> */}
+      <div className="send-message-box flex items-center p-2 border-t">
         <input
-          className="border p-2 m-2 rounded-xl w-[94%]"
+          type="text"
+          className="border rounded-lg flex-1 p-2"
+          placeholder="Type your message..."
           value={newMessage}
-          placeholder="Message"
           onChange={(e) => setNewMessage(e.target.value)}
         />
+        <input
+          id="hidden-file-input"
+          type="file"
+          accept="image/*, .pdf, .docx, .xlsx, .txt"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
+        <PaperClipIcon
+          className="upload-icon w-6 h-6 ml-2 cursor-pointer"
+          onClick={() => {
+            handleClick(); // Trigger the handleClick function when the icon is clicked
+          }}
+        />
 
-        <button
+        {/* Send button */}
+        <PaperAirplaneIcon
+          className="send-icon w-6 h-6 ml-2 cursor-pointer text-blue-500"
           onClick={handleSendMessage}
-          className="w-[4%] flex justify-center"
-        >
-          <PaperAirplaneIcon
-            className="w-6 h-6 cursor-pointer"
-            color="green"
-            style={{ transform: "rotate(-30deg)" }}
-          />
-        </button>
+        />
       </div>
     </div>
   );
