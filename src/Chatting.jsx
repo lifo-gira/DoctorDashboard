@@ -23,8 +23,9 @@ const Chatting = ({ uname }) => {
   const [conversationList, setConversationList] = useState([]);
   const [usersWhoMessagedMe, setUsersWhoMessagedMe] = useState([]);
   const [offlineMessageCounts, setOfflineMessageCounts] = useState({});
-  const [selectedConversation, setSelectedConversation] = useState(null);
   const [conversations, setConversations] = useState([]);
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [conversationSelected, setConversationSelected] = useState(false);
   const [retryCount, setRetryCount] = useState({});
   const endOfMessagesRef = useRef(null);
   var storedData = localStorage.getItem("user");
@@ -56,6 +57,7 @@ const Chatting = ({ uname }) => {
     };
 
     initChat();
+    handleLogin();
 
     // Set up listener for receiving messages
     zim.on(
@@ -91,28 +93,11 @@ const Chatting = ({ uname }) => {
       }
     );
 
-    // Fetch the conversation list
-    var config = {
-      nextConversation: null, // Latest conversation
-      count: 20, // Fetch 20 conversations per query
-    };
-
-    zim.queryConversationList(config)
-      .then(function ({ conversationList }) {
-        // Query succeeded. Store and maintain the conversation objects.
-        console.log("Fetched conversations:", conversationList);
-        setConversations(conversationList); // Store the conversation list in state
-      })
-      .catch(function (err) {
-        // Query failed.
-        console.error("Error fetching conversation list:", err);
-      });
-
+    // Cleanup listener when the component unmounts
     return () => {
       zim.off("receivePeerMessage");
     };
-  }, [userId]);
-  
+  }, [userId]); // userId is a dependency for re-initializing chat on change
 
   useEffect(() => {
     if (endOfMessagesRef.current) {
@@ -163,9 +148,22 @@ const Chatting = ({ uname }) => {
         .login(newUserDetails, token)
         .then(async function (res) {
           console.log("User logged in successfully:", res);
-          await fetchConversations();
-          await fetchHistoricalMessages();
-          await fetchOfflineMessages();
+
+          // Fetch the conversation list after successful login
+          var config = {
+            nextConversation: null, // Latest conversation
+            count: 20, // Fetch 20 conversations per query
+          };
+
+          zim
+            .queryConversationList(config)
+            .then(function ({ conversationList }) {
+              console.log("Fetched conversations:", conversationList);
+              setConversations(conversationList); // Store the conversation list in state
+            })
+            .catch(function (err) {
+              console.error("Error fetching conversation list:", err);
+            });
         })
         .catch(function (err) {
           console.error("Error during login:", err);
@@ -175,27 +173,27 @@ const Chatting = ({ uname }) => {
     }
   };
 
-  const fetchConversations = async () => {
-    try {
-      const result = await zim.queryConversations(0, 20);
-      console.log("Fetched conversations:", result);
+  // const fetchConversations = async () => {
+  //   try {
+  //     const result = await zim.queryConversations(0, 20);
+  //     console.log("Fetched conversations:", result);
 
-      if (result && result.conversationList) {
-        const formattedConversations = result.conversationList.map((conv) => ({
-          userId: conv.peerID,
-          userName: conv.peerName || conv.peerID,
-        }));
+  //     if (result && result.conversationList) {
+  //       const formattedConversations = result.conversationList.map((conv) => ({
+  //         userId: conv.peerID,
+  //         userName: conv.peerName || conv.peerID,
+  //       }));
 
-        setConversationList(formattedConversations);
-      } else {
-        setConversationList([]);
-      }
-    } catch (error) {
-      console.error("Error fetching conversations:", error);
-    }
-  };
+  //       setConversationList(formattedConversations);
+  //     } else {
+  //       setConversationList([]);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching conversations:", error);
+  //   }
+  // };
 
-  const fetchHistoricalMessages = async () => {
+  const fetchHistoricalMessages = async (toUserId) => {
     if (!toUserId) {
       console.warn("Recipient user ID is required to fetch history.");
       return;
@@ -403,192 +401,216 @@ const Chatting = ({ uname }) => {
   };
 
   const handleConversationClick = (conversation) => {
-    // Fetch and display messages for the selected conversation
+    const { conversationID, lastMessage, conversationName } = conversation;
+    const toUserId =
+      lastMessage.senderUserID === userId
+        ? conversationID
+        : lastMessage.senderUserID;
+  
+    // Set the toUserId and conversationID for further message fetching
+    setToUserId(toUserId);
+  
+    // Fetch the conversation messages based on the selected conversation
+    fetchHistoricalMessages(toUserId);
+  
+    // Set the selected conversation and mark as conversation selected
     setSelectedConversation(conversation);
-    // You may want to make an API call or use ZIM's query messages to fetch messages for the selected conversation.
-    setMessages([]); // Clear current messages
+    setConversationSelected(true);
   };
 
   return (
     <div className="p-5 flex flex-col h-screen">
-     <div className="w-1/2 flex flex-row gap-4 items-center">
-        <select
-          className="border p-2 m-2 w-1/2 rounded-xl px-4"
-          value={toUserId}
-          onChange={(e) => setToUserId(e.target.value)}
+      {/* Display Conversation List when no conversation is selected */}
+      {!selectedConversation ? (
+        <div
+          className="conversation-list border p-2 m-2 flex-grow overflow-y-auto"
+          style={{ maxHeight: "100vh" }} // Max height for full screen
         >
-          <option value="" disabled>
-            Select a therapist
-          </option>
-          <option value="Anirudh456">Anirudh456</option>
-          <option value="therapist2">Therapist 2</option>
-          <option value="therapist3">Therapist 3</option>
-        </select>
-        <LinkIcon
-          className="upload-icon w-6 h-6 cursor-pointer"
-          onClick={handleLogin}
-        />
-      </div>
-
-      <div
-        className="messages-list border p-2 m-2 flex-grow overflow-y-auto"
-        style={{ maxHeight: "80vh" }}
-      >
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`p-2 m-1 ${
-              msg.from === uname
-                ? "text-right flex justify-end"
-                : "text-left flex justify-start"
-            }`}
-          >
+          <h3>Conversations</h3>
+          {conversations.map((conversation, index) => (
             <div
-              className={`message-bubble p-2 rounded-md ${
-                msg.from === uname ? "bg-blue-100" : "bg-gray-100"
-              }`}
+              key={index}
+              className="conversation-item p-2 m-1 cursor-pointer"
+              onClick={() => handleConversationClick(conversation)}
             >
-              <p
-                className={`font-bold ${
-                  msg.from === uname ? "text-blue-500" : "text-green-500"
+              <div className="conversation-info">
+                <img
+                  src={conversation.conversationAvatarUrl}
+                  alt={conversation.conversationName}
+                  width="40"
+                />
+                <p>{conversation.conversationName}</p>
+                {conversation.unreadMessageCount > 0 && (
+                  <span className="unread-badge">
+                    {conversation.unreadMessageCount}
+                  </span>
+                )}
+              </div>
+              <div className="last-message">
+                <p>{conversation.lastMessage?.message}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        // Message box and send message area when conversation is selected
+        <div className="flex flex-col h-full">
+          <div className="flex items-center mb-4">
+            {/* Back Button */}
+            <button
+              onClick={() => setSelectedConversation(null)}
+              className="back-button text-blue-500 flex items-center p-2 cursor-pointer"
+            >
+              <span className="ml-2">Back</span>
+            </button>
+          </div>
+  
+          <div className="messages-list border p-2 m-2 flex-grow overflow-y-auto mb-4">
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`p-2 m-1 ${
+                  msg.from === uname
+                    ? "text-right flex justify-end"
+                    : "text-left flex justify-start"
                 }`}
               >
-                {msg.from === uname ? "You" : `From: ${msg.from}`}
-              </p>
-
-              {/* Handle Image Messages */}
-              {msg.type === "image" && msg.fileDownloadUrl ? (
                 <div
-                  className={`${
-                    msg.from === uname ? "text-right" : "text-left"
+                  className={`message-bubble p-2 rounded-md ${
+                    msg.from === uname ? "bg-blue-100" : "bg-gray-100"
                   }`}
                 >
-                  <img
-                    src={msg.fileDownloadUrl}
-                    alt={msg.fileName}
-                    onError={() => handleImageError(msg)} // Image error handling
-                    onClick={() => handleImageClick(msg.fileDownloadUrl)} // Open modal on image click
-                    className="max-w-[500px] max-h-[500px] rounded-md cursor-pointer" // Styling for the thumbnail
-                  />
-
-                  {/* Full-Screen Modal for Images */}
-                  {isModalOpen && modalImage === msg.fileDownloadUrl && (
-                    <div className="fixed inset-0 bg-white flex justify-center items-center z-50">
-                      <div className="relative max-w-full max-h-full overflow-hidden">
-                        {/* Display the selected image in the modal */}
-                        <img
-                          src={modalImage} // Display the image that was clicked
-                          alt={msg.fileName}
-                          className="max-w-[95vw] max-h-[95vh] object-contain rounded-md" // Limit image size to 95% of the viewport size
-                        />
-                        {/* Close Button */}
-                        <button
-                          onClick={handleCloseModal} // Close modal
-                          className="absolute top-2 right-2 text-black bg-white bg-opacity-70 rounded-full p-8 text-4xl"
-                        >
-                          X
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (msg.type === "sent" || msg.type === "received") &&
-                msg.fileDownloadUrl ? (
-                <div
-                  className={`${
-                    msg.from === userId ? "text-right" : "text-left"
-                  }`}
-                >
-                  {/* File type previews */}
-                  <div>
-                    <p className="text-blue-500">
-                      {msg.fileName || "Unknown File"}
-                    </p>
-                  </div>
-
-                  {/* Render PDF Inline */}
-                  {msg.fileName && msg.fileName.endsWith(".pdf") ? (
-                    <iframe
-                      src={msg.fileDownloadUrl}
-                      title="PDF Preview"
-                      width="100%"
-                      height="100%x"
-                      frameBorder="0"
-                    ></iframe>
-                  ) : msg.fileName &&
-                    (msg.fileName.endsWith(".docx") ||
-                      msg.fileName.endsWith(".doc")) ? (
-                    <iframe
-                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(
-                        msg.fileDownloadUrl
-                      )}&embedded=true`}
-                      width="100%"
-                      height="100%"
-                      frameBorder="0"
-                      title="Word Document Preview"
-                    ></iframe>
-                  ) : msg.fileName &&
-                    (msg.fileName.endsWith(".xls") ||
-                      msg.fileName.endsWith(".xlsx")) ? (
-                    <iframe
-                      src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-                        msg.fileDownloadUrl
-                      )}`}
-                      width="100%"
-                      height="100%"
-                      frameBorder="0"
-                      title="Excel Document Preview"
-                    ></iframe>
-                  ) : (
-                    // If file type not supported for preview, show a download link
-                    <a
-                      href={msg.fileDownloadUrl}
-                      download={msg.fileName}
-                      className="text-blue-500 underline"
+                  <p
+                    className={`font-bold ${
+                      msg.from === uname ? "text-blue-500" : "text-green-500"
+                    }`}
+                  >
+                    {msg.from === uname ? "You" : `From: ${msg.from}`}
+                  </p>
+  
+                  {/* Handle Image Messages */}
+                  {msg.type === "image" && msg.fileDownloadUrl ? (
+                    <div
+                      className={`${msg.from === uname ? "text-right" : "text-left"}`}
                     >
-                      Download {msg.fileName}
-                    </a>
+                      <img
+                        src={msg.fileDownloadUrl}
+                        alt={msg.fileName}
+                        onError={() => handleImageError(msg)} // Image error handling
+                        onClick={() => handleImageClick(msg.fileDownloadUrl)} // Open modal on image click
+                        className="max-w-[500px] max-h-[500px] rounded-md cursor-pointer" // Styling for the thumbnail
+                      />
+  
+                      {/* Full-Screen Modal for Images */}
+                      {isModalOpen && modalImage === msg.fileDownloadUrl && (
+                        <div className="fixed inset-0 bg-white flex justify-center items-center z-50">
+                          <div className="relative max-w-full max-h-full overflow-hidden">
+                            <img
+                              src={modalImage} // Display the image that was clicked
+                              alt={msg.fileName}
+                              className="max-w-[95vw] max-h-[95vh] object-contain rounded-md" // Limit image size to 95% of the viewport size
+                            />
+                            {/* Close Button */}
+                            <button
+                              onClick={handleCloseModal} // Close modal
+                              className="absolute top-2 right-2 text-black bg-white bg-opacity-70 rounded-full p-8 text-4xl"
+                            >
+                              X
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (msg.type === "sent" || msg.type === "received") &&
+                    msg.fileDownloadUrl ? (
+                    <div
+                      className={`${msg.from === userId ? "text-right" : "text-left"}`}
+                    >
+                      <div>
+                        <p className="text-blue-500">
+                          {msg.fileName || "Unknown File"}
+                        </p>
+                      </div>
+  
+                      {/* Render File Previews (PDF, DOCX, XLS) */}
+                      {msg.fileName && msg.fileName.endsWith(".pdf") ? (
+                        <iframe
+                          src={msg.fileDownloadUrl}
+                          title="PDF Preview"
+                          width="100%"
+                          height="100%"
+                          frameBorder="0"
+                        ></iframe>
+                      ) : msg.fileName &&
+                        (msg.fileName.endsWith(".docx") || msg.fileName.endsWith(".doc")) ? (
+                        <iframe
+                          src={`https://docs.google.com/viewer?url=${encodeURIComponent(msg.fileDownloadUrl)}&embedded=true`}
+                          width="100%"
+                          height="100%"
+                          frameBorder="0"
+                          title="Word Document Preview"
+                        ></iframe>
+                      ) : msg.fileName &&
+                        (msg.fileName.endsWith(".xls") || msg.fileName.endsWith(".xlsx")) ? (
+                        <iframe
+                          src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(msg.fileDownloadUrl)}`}
+                          width="100%"
+                          height="100%"
+                          frameBorder="0"
+                          title="Excel Document Preview"
+                        ></iframe>
+                      ) : (
+                        <a
+                          href={msg.fileDownloadUrl}
+                          download={msg.fileName}
+                          className="text-blue-500 underline"
+                        >
+                          Download {msg.fileName}
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <p>{msg.text}</p>
                   )}
                 </div>
-              ) : (
-                <p>{msg.text}</p>
-              )}
-            </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-
-
-      <div className="send-message-box flex items-center p-2 border-t">
-        <input
-          type="text"
-          className="border rounded-lg flex-1 p-2"
-          placeholder="Type your message..."
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-        />
-        <input
-          id="hidden-file-input"
-          type="file"
-          accept="image/*, .pdf, .docx, .xlsx, .txt"
-          style={{ display: "none" }}
-          onChange={handleFileChange}
-        />
-        <PaperClipIcon
-          className="upload-icon w-6 h-6 ml-2 cursor-pointer"
-          onClick={() => {
-            handleClick(); // Trigger the handleClick function when the icon is clicked
-          }}
-        />
-
-        {/* Send button */}
-        <PaperAirplaneIcon
-          className="send-icon w-6 h-6 ml-2 cursor-pointer text-blue-500"
-          onClick={handleSendMessage}
-        />
-      </div>
+  
+          {/* Send message box (always visible after conversation is selected) */}
+          <div className="send-message-box flex items-center p-2 border-t bg-white shadow-md">
+            <input
+              type="text"
+              className="border rounded-lg flex-1 p-2"
+              placeholder="Type your message..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+            />
+            <input
+              id="hidden-file-input"
+              type="file"
+              accept="image/*, .pdf, .docx, .xlsx, .txt"
+              style={{ display: "none" }}
+              onChange={handleFileChange}
+            />
+            <PaperClipIcon
+              className="upload-icon w-6 h-6 ml-2 cursor-pointer"
+              onClick={() => {
+                handleClick(); // Trigger the handleClick function when the icon is clicked
+              }}
+            />
+  
+            {/* Send button */}
+            <PaperAirplaneIcon
+              className="send-icon w-6 h-6 ml-2 cursor-pointer text-blue-500"
+              onClick={handleSendMessage}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
+  
 };
 
 export default Chatting;
