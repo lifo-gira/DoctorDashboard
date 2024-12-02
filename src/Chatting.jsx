@@ -26,8 +26,9 @@ const Chatting = ({ uname }) => {
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [conversationSelected, setConversationSelected] = useState(false);
+  const [addId, setAddId] = useState('');
   const [retryCount, setRetryCount] = useState({});
-  const endOfMessagesRef = useRef(null);
+  const messagesEndRef = useRef(null);
   var storedData = localStorage.getItem("user");
   var parsedData = JSON.parse(storedData);
   var generatedUserId = parsedData.user_id;
@@ -71,6 +72,7 @@ const Chatting = ({ uname }) => {
         );
 
         if (messageList.length > 0) {
+          // Process the new messages and update the conversations state
           setMessages((prevMessages) => [
             ...prevMessages,
             ...messageList.map((message) => ({
@@ -83,12 +85,26 @@ const Chatting = ({ uname }) => {
             })),
           ]);
 
-          setUsersWhoMessagedMe((prevUsers) => {
-            if (!prevUsers.includes(fromConversationID)) {
-              return [...prevUsers, fromConversationID];
-            }
-            return prevUsers;
-          });
+          // setConversations((prevConversations) => {
+          //   return prevConversations.map((conversation) =>
+          //     conversation.id === fromConversationID
+          //       ? {
+          //           ...conversation,
+          //           lastMessage: messageList[0], // Update with the last message
+          //           unreadMessageCount: conversation.unreadMessageCount + 1, // Increment unread count
+          //         }
+          //       : conversation
+          //   );
+          // });
+
+          fetchConversations();
+
+          // setUsersWhoMessagedMe((prevUsers) => {
+          //   if (!prevUsers.includes(fromConversationID)) {
+          //     return [...prevUsers, fromConversationID];
+          //   }
+          //   return prevUsers;
+          // });
         }
       }
     );
@@ -100,8 +116,8 @@ const Chatting = ({ uname }) => {
   }, [userId]); // userId is a dependency for re-initializing chat on change
 
   useEffect(() => {
-    if (endOfMessagesRef.current) {
-      endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
 
@@ -135,7 +151,6 @@ const Chatting = ({ uname }) => {
       console.error(`Max retries reached for image: ${msg.fileDownloadUrl}`);
     }
   };
-
   const handleLogin = () => {
     if (!token || !userId) {
       console.warn("Token or User ID is missing.");
@@ -159,7 +174,54 @@ const Chatting = ({ uname }) => {
             .queryConversationList(config)
             .then(function ({ conversationList }) {
               console.log("Fetched conversations:", conversationList);
-              setConversations(conversationList); // Store the conversation list in state
+
+              // Process each conversation to extract required properties
+              const processedConversations = conversationList.map(
+                (conversation) => ({
+                  id: conversation.conversationID,
+                  type: conversation.type,
+                  lastMessage: conversation.lastMessage || {
+                    message: "No messages yet",
+                  }, // Extract last message
+                  unreadMessageCount: conversation.unreadMessageCount || 0,
+                  notificationStatus:
+                    conversation.notificationStatus || "enabled", // Default to "enabled"
+                  conversationName: conversation.conversationName || "Unnamed", // Default username if missing
+                  conversationAvatarUrl:
+                    conversation.conversationAvatarUrl || "default-avatar-url", // Default avatar if missing
+                })
+              );
+
+              console.log("Processed conversations:", processedConversations);
+              setConversations(processedConversations); // Store the processed conversations in state
+
+              // Calculate total unread messages
+              const totalUnreadMessages = processedConversations.reduce(
+                (sum, conversation) => sum + conversation.unreadMessageCount,
+                0
+              );
+              console.log("Total unread messages:", totalUnreadMessages);
+
+              // Optionally clear unread message counts
+              processedConversations.forEach((conversation) => {
+                zim
+                  .clearConversationUnreadMessageCount(
+                    conversation.id,
+                    conversation.type
+                  )
+                  .then((res) => {
+                    console.log(
+                      `Cleared unread messages for conversation: ${conversation.id}`,
+                      res
+                    );
+                  })
+                  .catch((err) => {
+                    console.error(
+                      `Failed to clear unread messages for conversation: ${conversation.id}`,
+                      err
+                    );
+                  });
+              });
             })
             .catch(function (err) {
               console.error("Error fetching conversation list:", err);
@@ -401,70 +463,316 @@ const Chatting = ({ uname }) => {
   };
 
   const handleConversationClick = (conversation) => {
-    const { conversationID, lastMessage, conversationName } = conversation;
+    const {
+      conversationID,
+      lastMessage,
+      conversationName,
+      unreadMessageCount,
+      type,
+    } = conversation;
+
     const toUserId =
       lastMessage.senderUserID === userId
         ? conversationID
         : lastMessage.senderUserID;
-  
+
     // Set the toUserId and conversationID for further message fetching
     setToUserId(toUserId);
-  
+
     // Fetch the conversation messages based on the selected conversation
     fetchHistoricalMessages(toUserId);
-  
+
     // Set the selected conversation and mark as conversation selected
     setSelectedConversation(conversation);
     setConversationSelected(true);
+
+    // Clear the unread message count for the clicked conversation
+    zim
+      .clearConversationUnreadMessageCount(conversationID, type)
+      .then((res) => {
+        console.log(
+          `Cleared unread messages for conversation: ${conversationID}`,
+          res
+        );
+
+        // Update the conversations state to set unreadMessageCount to 0 for the clicked conversation
+        setConversations((prevConversations) =>
+          prevConversations.map((item) =>
+            item.conversationID === conversationID
+              ? { ...item, unreadMessageCount: 0 } // Set unread message count to 0
+              : item
+          )
+        );
+      })
+      .catch((err) => {
+        console.error(
+          `Failed to clear unread messages for conversation: ${conversationID}`,
+          err
+        );
+      });
   };
+
+  const handleAddFriend = () => {
+    if (addId.trim() && token && userId) {
+      console.log(addId);
+      zim.addFriend(addId, { wording: 'Hello!', friendAlias: 'Mark', friendAttributes: { k0: 'SZ' } })
+        .then(res => {
+          const friendInfo = res.friendInfo;
+          console.log('Friend added:', friendInfo);
+  
+          setIsModalOpen(false);
+  
+          console.log(addId);
+          sendMessageToFriend(addId);
+  
+          // Refresh conversations after adding a friend
+          fetchConversations();
+        })
+        .catch(error => {
+          console.error('Error adding friend:', error);
+        });
+    } else {
+      alert('Please enter a valid user ID and ensure you are logged in.');
+    }
+  };
+  
+  const sendMessageToFriend = (toUserId) => {
+    try {
+      const config = {
+        priority: 1 // Low priority by default
+      };
+  
+      const messageTextObj = { type: 1, message: `Hello, ${toUserId}!\n Do reply to this message!` };
+      zim.sendMessage(messageTextObj, toUserId, 0, config)
+        .then(({ message }) => {
+          console.log("Message sent:", message);
+  
+          // Refresh conversations after sending a message
+          fetchConversations();
+        })
+        .catch(err => {
+          console.error("Error sending message:", err);
+        });
+    } catch (error) {
+      console.error("Error in sendMessageToFriend:", error);
+    }
+  };
+  
+  const fetchConversations = () => {
+    const config = {
+      nextConversation: null, // Latest conversation
+      count: 20, // Fetch 20 conversations per query
+    };
+  
+    zim.queryConversationList(config)
+      .then(({ conversationList }) => {
+        const processedConversations = conversationList.map(conversation => ({
+          id: conversation.conversationID,
+          type: conversation.type,
+          lastMessage: conversation.lastMessage || { message: "No messages yet" },
+          unreadMessageCount: conversation.unreadMessageCount || 0,
+          notificationStatus: conversation.notificationStatus || "enabled",
+          conversationName: conversation.conversationName || "Unnamed",
+          conversationAvatarUrl: conversation.conversationAvatarUrl || "default-avatar-url",
+        }));
+  
+        console.log("Processed conversations:", processedConversations);
+        setConversations(processedConversations);
+  
+        // Calculate total unread messages
+        const totalUnreadMessages = processedConversations.reduce(
+          (sum, conversation) => sum + conversation.unreadMessageCount,
+          0
+        );
+        console.log("Total unread messages:", totalUnreadMessages);
+      })
+      .catch(err => {
+        console.error("Error fetching conversation list:", err);
+      });
+  };
+  
+  const handleAddNewClick = () => {
+    setIsModalOpen(true); // Open the modal when "Add New" is clicked
+    setAddId(''); // Clear addId when modal opens
+  };
+
+  const handleDeleteConversation = (conversationID, conversationType) => {
+    zim
+      .deleteConversation(conversationID, conversationType, {})
+      .then((res) => {
+        console.log(`Conversation ${conversationID} deleted successfully:`, res);
+  
+        // Remove the deleted conversation from state
+        setConversations((prevConversations) =>
+          prevConversations.filter((conv) => conv.id !== conversationID)
+        );
+      })
+      .catch((err) => {
+        console.error(`Failed to delete conversation ${conversationID}:`, err);
+      });
+  };
+  const [contextMenu, setContextMenu] = useState(null);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+
+  const handleRightClick = (e, msg) => {
+    e.preventDefault(); // Prevent the default browser context menu
+    setSelectedMessage(msg); // Save the message for deletion
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+    });
+  };
+
+  const handleDelete = () => {
+    if (selectedMessage) {
+      handleDeleteMessage(
+        selectedMessage.id,
+        selectedMessage.conversationID,
+        selectedMessage.conversationType
+      );
+    }
+    setContextMenu(null); // Close the menu
+    setSelectedMessage(null);
+  };
+
+  const closeContextMenu = () => setContextMenu(null); 
+
+  const handleDeleteMessage = (messageID, conversationID, conversationType) => {
+    const deleteMessageList = [messageID]; // Specify the message ID to delete
+    
+    zim
+      .deleteMessages(deleteMessageList, conversationID, conversationType, {})
+      .then(({ conversationID, conversationType }) => {
+        console.log(
+          `Message ${messageID} deleted successfully in conversation ${conversationID}.`
+        );
+  
+        // Optionally update the state to reflect the deleted message
+        setMessages((prevMessages) =>
+          prevMessages.filter((message) => message.id !== messageID)
+        );
+      })
+      .catch((err) => {
+        console.error(`Failed to delete message ${messageID}:`, err);
+      });
+  };
+  
+  
 
   return (
     <div className="p-5 flex flex-col h-screen">
       {/* Display Conversation List when no conversation is selected */}
       {!selectedConversation ? (
-        <div
-          className="conversation-list border p-2 m-2 flex-grow overflow-y-auto"
-          style={{ maxHeight: "100vh" }} // Max height for full screen
-        >
-          <h3>Conversations</h3>
-          {conversations.map((conversation, index) => (
-            <div
-              key={index}
-              className="conversation-item p-2 m-1 cursor-pointer"
-              onClick={() => handleConversationClick(conversation)}
-            >
-              <div className="conversation-info">
-                <img
-                  src={conversation.conversationAvatarUrl}
-                  alt={conversation.conversationName}
-                  width="40"
-                />
-                <p>{conversation.conversationName}</p>
-                {conversation.unreadMessageCount > 0 && (
-                  <span className="unread-badge">
-                    {conversation.unreadMessageCount}
-                  </span>
-                )}
-              </div>
-              <div className="last-message">
-                <p>{conversation.lastMessage?.message}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+     <div className="conversation-list border p-2 m-2 flex-grow overflow-y-auto">
+     <div className="flex justify-between items-center">
+       <h3>Conversations</h3>
+       <button
+         className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+         onClick={handleAddNewClick}
+       >
+         <span className="mr-2">+</span> Add New
+       </button>
+     </div>
+
+     {conversations.map((conversation, index) => (
+       <div
+         key={index}
+         className="conversation-item p-4 m-2 cursor-pointer bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow"
+         onClick={() => handleConversationClick(conversation)}
+       >
+         <div className="flex items-center">
+           <img
+             src={conversation.conversationAvatarUrl}
+             alt={conversation.conversationName}
+             className="w-12 h-12 rounded-full object-cover"
+           />
+           <div className="ml-4 flex-grow">
+             <p className="text-base font-semibold text-gray-800">
+               {conversation.conversationName}
+             </p>
+             <p className="text-sm text-gray-600 truncate">
+               {conversation.lastMessage?.message || 'No messages yet'}
+             </p>
+           </div>
+           {conversation.unreadMessageCount > 0 && (
+             <span className="bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-full">
+               {conversation.unreadMessageCount}
+             </span>
+           )}
+         </div>
+       </div>
+     ))}
+     {/* Modal for adding new friend */}
+     {isModalOpen && (
+       <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
+         <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+           <h2 className="text-xl font-semibold mb-4">Enter User ID</h2>
+           <input
+             type="text"
+             className="border p-2 w-full rounded-md mb-4"
+             placeholder="Enter User ID" // Placeholder text
+             value={addId} // Binds the input value to the addId state
+             onChange={(e) => setAddId(e.target.value)} // Updates the addId state as user types
+           />
+           <div className="flex justify-between">
+             <button
+               onClick={handleCloseModal}
+               className="bg-gray-300 text-black px-4 py-2 rounded-lg hover:bg-gray-400"
+             >
+               Cancel
+             </button>
+             <button
+               onClick={handleAddFriend}
+               className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+             >
+               Add Friend
+             </button>
+           </div>
+         </div>
+       </div>
+     )}
+   </div>
+    
       ) : (
         // Message box and send message area when conversation is selected
         <div className="flex flex-col h-full">
           <div className="flex items-center mb-4">
-            {/* Back Button */}
-            <button
-              onClick={() => setSelectedConversation(null)}
-              className="back-button text-blue-500 flex items-center p-2 cursor-pointer"
-            >
-              <span className="ml-2">Back</span>
-            </button>
-          </div>
-  
+  {/* Back Button */}
+  <button
+    onClick={() => {
+      // Reset the unread message count for all conversations
+      setConversations((prevConversations) =>
+        prevConversations.map((conversation) => ({
+          ...conversation,
+          unreadMessageCount: 0, // Reset unread message count to 0
+        }))
+      );
+
+      // Set the selected conversation to null when navigating back to the list
+      setSelectedConversation(null);
+    }}
+    className="back-button text-blue-500 flex items-center p-2 cursor-pointer"
+  >
+    <span className="ml-2">Back</span>
+  </button>
+
+  {/* Delete Button */}
+  <button
+    onClick={() => {
+      if (selectedConversation) {
+        handleDeleteConversation(
+          selectedConversation.id,
+          selectedConversation.type
+        );
+        setSelectedConversation(null); // Navigate back after deletion
+      }
+    }}
+    className="delete-button text-red-500 flex items-center p-2 ml-auto cursor-pointer"
+  >
+    <span className="ml-2">Delete</span>
+  </button>
+</div>
+
           <div className="messages-list border p-2 m-2 flex-grow overflow-y-auto mb-4">
             {messages.map((msg, index) => (
               <div
@@ -487,11 +795,13 @@ const Chatting = ({ uname }) => {
                   >
                     {msg.from === uname ? "You" : `From: ${msg.from}`}
                   </p>
-  
+
                   {/* Handle Image Messages */}
                   {msg.type === "image" && msg.fileDownloadUrl ? (
                     <div
-                      className={`${msg.from === uname ? "text-right" : "text-left"}`}
+                      className={`${
+                        msg.from === uname ? "text-right" : "text-left"
+                      }`}
                     >
                       <img
                         src={msg.fileDownloadUrl}
@@ -500,7 +810,7 @@ const Chatting = ({ uname }) => {
                         onClick={() => handleImageClick(msg.fileDownloadUrl)} // Open modal on image click
                         className="max-w-[500px] max-h-[500px] rounded-md cursor-pointer" // Styling for the thumbnail
                       />
-  
+
                       {/* Full-Screen Modal for Images */}
                       {isModalOpen && modalImage === msg.fileDownloadUrl && (
                         <div className="fixed inset-0 bg-white flex justify-center items-center z-50">
@@ -524,14 +834,16 @@ const Chatting = ({ uname }) => {
                   ) : (msg.type === "sent" || msg.type === "received") &&
                     msg.fileDownloadUrl ? (
                     <div
-                      className={`${msg.from === userId ? "text-right" : "text-left"}`}
+                      className={`${
+                        msg.from === userId ? "text-right" : "text-left"
+                      }`}
                     >
                       <div>
                         <p className="text-blue-500">
                           {msg.fileName || "Unknown File"}
                         </p>
                       </div>
-  
+
                       {/* Render File Previews (PDF, DOCX, XLS) */}
                       {msg.fileName && msg.fileName.endsWith(".pdf") ? (
                         <iframe
@@ -542,18 +854,24 @@ const Chatting = ({ uname }) => {
                           frameBorder="0"
                         ></iframe>
                       ) : msg.fileName &&
-                        (msg.fileName.endsWith(".docx") || msg.fileName.endsWith(".doc")) ? (
+                        (msg.fileName.endsWith(".docx") ||
+                          msg.fileName.endsWith(".doc")) ? (
                         <iframe
-                          src={`https://docs.google.com/viewer?url=${encodeURIComponent(msg.fileDownloadUrl)}&embedded=true`}
+                          src={`https://docs.google.com/viewer?url=${encodeURIComponent(
+                            msg.fileDownloadUrl
+                          )}&embedded=true`}
                           width="100%"
                           height="100%"
                           frameBorder="0"
                           title="Word Document Preview"
                         ></iframe>
                       ) : msg.fileName &&
-                        (msg.fileName.endsWith(".xls") || msg.fileName.endsWith(".xlsx")) ? (
+                        (msg.fileName.endsWith(".xls") ||
+                          msg.fileName.endsWith(".xlsx")) ? (
                         <iframe
-                          src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(msg.fileDownloadUrl)}`}
+                          src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+                            msg.fileDownloadUrl
+                          )}`}
                           width="100%"
                           height="100%"
                           frameBorder="0"
@@ -575,8 +893,10 @@ const Chatting = ({ uname }) => {
                 </div>
               </div>
             ))}
+            {/* Step 3: Add a ref at the end of the messages list */}
+            <div ref={messagesEndRef} />
           </div>
-  
+
           {/* Send message box (always visible after conversation is selected) */}
           <div className="send-message-box flex items-center p-2 border-t bg-white shadow-md">
             <input
@@ -599,7 +919,7 @@ const Chatting = ({ uname }) => {
                 handleClick(); // Trigger the handleClick function when the icon is clicked
               }}
             />
-  
+
             {/* Send button */}
             <PaperAirplaneIcon
               className="send-icon w-6 h-6 ml-2 cursor-pointer text-blue-500"
@@ -610,7 +930,6 @@ const Chatting = ({ uname }) => {
       )}
     </div>
   );
-  
 };
 
 export default Chatting;
