@@ -2,9 +2,11 @@ import React, { useEffect, useState, useRef } from "react";
 import { ZIM } from "zego-zim-web";
 import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 import { PhoneIcon } from "@heroicons/react/16/solid";
+import { generateKitToken } from "./TokenGenerator";
 
-export default function VideoCall({onMeetEnd,doctorId}) {
 
+
+export default function VideoCall({ onMeetEnd, doctorId }) {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,23 +20,22 @@ export default function VideoCall({onMeetEnd,doctorId}) {
     const fetchPatientInfo = async () => {
       try {
         const response = await fetch(
-          `https://api-backup-vap2.onrender.com/patient-info/${doctorId}`
+          `https://api-wo6.onrender.com/patient-info/${doctorId}`
         );
         const data = await response.json();
 
         if (response.ok) {
           setPatients(data);
-          console.log(data)
-          setDocumentId(data.health_tracker.meeting_link);
+          setDocumentId(data._id);
           setpatientId(data.patient_id);
-          setdoctor_Id(data.doctor_id)
-          setdoctorName(data.doctor_assigned)
+          setdoctor_Id(data.doctor_id);
+          setdoctorName(data.doctor_assigned);
           setpatientName(data.user_id);
         } else {
-          setError(data.detail || 'Failed to fetch patient information');
+          setError(data.detail || "Failed to fetch patient information");
         }
       } catch (error) {
-        setError('Error fetching patient information');
+        setError("Error fetching patient information");
       } finally {
         setLoading(false);
       }
@@ -44,11 +45,10 @@ export default function VideoCall({onMeetEnd,doctorId}) {
   }, [doctorId]);
 
   useEffect(() => {
-    console.log("Checking dependencies:", documentId, patientId, patientName, doctor_Id, doctorName);
     if (documentId && patientId && patientName && doctor_Id && doctorName) {
       init();
     }
-  }, [documentId,patientId,patientName,doctor_Id,doctorName]);
+  }, [documentId, patientId, patientName, doctor_Id, doctorName]);
 
   const [userInfo, setUserInfo] = useState({
     userName: "",
@@ -57,40 +57,42 @@ export default function VideoCall({onMeetEnd,doctorId}) {
   const zeroCloudInstance = useRef(null);
 
   async function init() {
-    const userId = doctor_Id; // You can keep this as-is
-    const userName = doctorName; // You can keep this as-is
+    const userId = doctor_Id;
+    const userName = doctorName;
     setUserInfo({
       userName,
       userId,
     });
-    console.log(userInfo)
-    const appID = 1455965454;
-    const serverSecret = "c49644efc7346cc2a7a899aed401ad76";
+    const appID = 1296580694;
+    const serverSecret = "47e42973e5492120a04fc8c8b839232a";
 
-    const KitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-      appID,
-      serverSecret,
-      documentId,
-      userId,
-      userName
-    );
+    const KitToken = generateKitToken(documentId, userId, userName);
 
     zeroCloudInstance.current = ZegoUIKitPrebuilt.create(KitToken);
 
-    // zeroCloudInstance.current.on("call:call-ended", () => {
-    //   console.log("Video call ended");
-    //   onMeetEnd(); // Call the function when the video call ends
-    // });
-    // add plugin
     zeroCloudInstance.current.addPlugins({ ZIM });
-    
+
+    // Set up the callback for when a call ends
+    zeroCloudInstance.current.onCallEnded = (endReason) => {
+      console.log("Call ended. Reason:", endReason);
+
+      // Handle different end reasons and call the onMeetEnd function
+      if (
+        endReason === "Declined" ||
+        endReason === "Timeout" ||
+        endReason === "Canceled" ||
+        endReason === "Busy" ||
+        endReason === "LeaveRoom"
+      ) {
+        onMeetEnd(); // Trigger logout or necessary cleanup
+      }
+    };
   }
 
   function handleSend(callType) {
-    const callee = patientId; // Hardcoded callee userID
-    const calleeUsername = patientName; // Hardcoded callee username
+    const callee = patientId;
+    const calleeUsername = patientName;
   
-    // send call invitation
     zeroCloudInstance.current
       .sendCallInvitation({
         callees: [{ userID: callee, userName: calleeUsername }],
@@ -98,30 +100,27 @@ export default function VideoCall({onMeetEnd,doctorId}) {
         timeout: 60,
       })
       .then((res) => {
-        console.warn(res); // Log the full response for debugging
-        
-        // Check if there are any errors with invitees
+        console.warn(res);
         if (res.errorInvitees.length) {
-          console.log("Error invitees:", res.errorInvitees); // Log the invitees that caused the error
+          console.log("Error invitees:", res.errorInvitees);
           alert("The user does not exist or is offline.");
           return;
         }
       })
       .catch((err) => {
-        console.error(err); // Log the error for debugging
+        console.error(err);
         return;
       });
   }
-  
 
   return (
     <div>
-    <PhoneIcon
-      className="w-4 h-4 cursor-pointer" 
-      onClick={() => {
-        handleSend(ZegoUIKitPrebuilt.InvitationTypeVideoCall);
-      }} 
-    />
-  </div>
+      <PhoneIcon
+        className="w-4 h-4 cursor-pointer"
+        onClick={() => {
+          handleSend(ZegoUIKitPrebuilt.InvitationTypeVideoCall);
+        }}
+      />
+    </div>
   );
 }

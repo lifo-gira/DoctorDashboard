@@ -43,10 +43,11 @@ import {
   XMarkIcon,
 } from "@heroicons/react/16/solid";
 
-import { Box, Button } from "@mui/material";
+import { Box, Button, Paper } from "@mui/material";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import { jsPDF } from "jspdf"; //or use your library of choice here
 import autoTable from "jspdf-autotable";
+import { DataGrid } from "@mui/x-data-grid";
 
 const Detailreport = (assessment, index, reportData, selected) => {
   var storedData = localStorage.getItem("user");
@@ -66,23 +67,38 @@ const Detailreport = (assessment, index, reportData, selected) => {
         : assessment.selected === "model_recovery"
         ? assessment.assessment.Exercise
         : {};
-    console.log(assessment.assessment.Exercise);
-    let totalExercises,definedExercisesCount; // Set total exercises to 8
 
-    if(assessment.selected === "assessment"){
-      totalExercises = 8;
-      definedExercisesCount = Object.keys(exercises).length;
-    }else{
-      totalExercises = Object.keys(assessment.reportData.Exercise_Assigned).length;     
-      definedExercisesCount = Object.keys(exercises).length;
-    } 
+    // console.log(assessment.assessment.exercises);
 
+    let totalExercises, definedExercisesCount;
+
+    if (assessment.selected === "assessment") {
+      totalExercises = 7;
+
+      // Count only exercises that have non-empty arrays with key-value pairs
+      definedExercisesCount = Object.values(
+        assessment.assessment.exercises
+      ).filter((exerciseObject) => {
+        // For each exercise object, we check if any of the arrays inside contain key-value pairs
+        return Object.values(exerciseObject).some((exerciseArray) => {
+          return (
+            Array.isArray(exerciseArray) &&
+            exerciseArray.some((item) => Object.keys(item).length > 0)
+          );
+        });
+      }).length;
+    } else {
+      totalExercises = Object.keys(
+        assessment.reportData.Exercise_Assigned
+      ).length;
+      definedExercisesCount = Object.keys(exercises).length;
+    }
     // Calculate the completion percentage based on defined exercises
     const progress = (definedExercisesCount / totalExercises) * 100;
 
     // Calculate remaining exercises as total minus defined
     const remaining = totalExercises - definedExercisesCount;
-
+    // console.log(definedExercisesCount);
     return {
       progress,
       remaining,
@@ -95,94 +111,39 @@ const Detailreport = (assessment, index, reportData, selected) => {
   const simpleData = useMemo(() => {
     const exercises =
       assessment.selected === "model_recovery"
-        ? assessment.assessment.Exercise // Access the 'Exercise' object directly
+        ? assessment.assessment.Exercise // Access 'Exercise' object directly
         : assessment.assessment.exercises; // Fallback to 'exercises'
 
-    return Object.entries(exercises).map(([exercise, data]) => ({
-      exercise,
-      cycles: isFirstRender ? "" : "", // Empty on first render
-      minangle: isFirstRender ? "" : "", // Empty on first render
-      maxangle: isFirstRender ? "" : "", // Empty on first render
-      rom: isFirstRender ? "" : data.rom || "", // Use ROM value from the data
-      painscore: isFirstRender ? "" : (data.pain && data.pain[0]) || "", // Use first pain score if available
-      subRows:
-        data.values.length > 0
-          ? data.values.map((value, index) => ({
-              exercise: "",
-              cycles: (index + 1).toString(), // Incrementing cycle number
-              minangle: "0", // You can change this logic if needed
-              maxangle: "90", // You can change this logic if needed
-              rom: data.rom, // Use ROM value from the data
-              painscore: data.pain[index] || "N/A", // Use pain data if available
-            }))
-          : [], // If no values, return an empty array
-    }));
+    console.log(exercises);
+
+    if (assessment.selected === "model_recovery") {
+      // Existing logic for 'model_recovery'
+      return Object.entries(exercises).map(([exercise, data]) => ({
+        exercise,
+        cycles: isFirstRender ? "" : "", // Empty on first render
+        minangle: isFirstRender ? "" : "", // Empty on first render
+        maxangle: isFirstRender ? "" : "", // Empty on first render
+        rom: isFirstRender ? "" : data.rom || "", // Use ROM value from the data
+        painscore: isFirstRender ? "" : (data.pain && data.pain[0]) || "", // Use first pain score if available
+        subRows:
+          data.values.length > 0
+            ? data.values.map((value, index) => ({
+                exercise: "",
+                cycles: (index + 1).toString(), // Incrementing cycle number
+                minangle: "0", // You can change this logic if needed
+                maxangle: "90", // You can change this logic if needed
+                rom: data.rom, // Use ROM value from the data
+                painscore: data.pain[index] || "N/A", // Use pain data if available
+              }))
+            : [], // If no values, return an empty array
+      }));
+    } else if (assessment.selected === "assessment") {
+      // Updated logic for 'assessment'
+    }
+
+    return []; // Fallback empty return
   }, [assessment, isFirstRender]);
 
-  const columns = useMemo(
-    () => [
-      { accessorKey: "exercise", header: "Exercise" },
-      { accessorKey: "cycles", header: "Cycles" },
-      { accessorKey: "minangle", header: "Min Angle" },
-      { accessorKey: "maxangle", header: "Max Angle" },
-      { accessorKey: "rom", header: "ROM" },
-      { accessorKey: "painscore", header: "Pain Score" },
-    ],
-    []
-  );
-
-  const handleExportRows = (rows) => {
-    const doc = new jsPDF();
-    const tableData = rows.map((row) => Object.values(row.original));
-    const tableHeaders = columns.map((c) => c.header);
-
-    autoTable(doc, {
-      head: [tableHeaders],
-      body: tableData,
-    });
-
-    doc.save("mrt-pdf-example.pdf");
-  };
-
-  const table = useMaterialReactTable({
-    columns,
-    data: simpleData, // Use the simplified data for testing
-    enableExpandAll: false,
-    enableExpanding: true,
-    filterFromLeafRows: true,
-    getSubRows: (row) => row.subRows ?? [], // Handle undefined subRows
-    initialState: { expanded: false },
-    paginateExpandedRows: false,
-    muiTableHeadCellProps: {
-      //simple styling with the `sx` prop, works just like a style prop in this example
-      sx: {
-        fontWeight: "bold",
-        fontSize: "15px",
-        fontFamily: "Poppins",
-      },
-    },
-    muiTableBodyCellProps: {
-      sx: {
-        fontFamily: "Poppins",
-        fontSize: "14px",
-        fontWeight: "medium",
-      },
-    },
-    renderTopToolbarCustomActions: ({ table }) => (
-      <p
-        sx={{
-          display: "flex",
-          gap: "16px",
-          padding: "8px",
-          flexWrap: "wrap",
-        }}
-        className="font-poppins font-bold text-[#7075DB] my-auto"
-        style={{ letterSpacing: "4px" }}
-      >
-        OVERVIEW
-      </p>
-    ),
-  });
   const [isOpen, setIsOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState(null);
   const [chartData, setChartData] = useState([]);
@@ -196,12 +157,109 @@ const Detailreport = (assessment, index, reportData, selected) => {
 
     // Check the selected type in assessment
     if (assessment.selected === "assessment") {
-      selectedExerciseData = assessment.assessment.exercises[
-        exerciseName
-      ].values.map((value, index) => ({
-        name: index, // Customize X-axis label
-        value: value,
-      }));
+      switch (exerciseName) {
+        case "Mobility Test":
+          const exerciseData = assessment.assessment.exercises["Mobility Test"];
+
+          // Access only the first array of leftleg and rightleg
+          const leftLegData = exerciseData.leftleg[0] || [];
+          const rightLegData = exerciseData.rightleg[0] || [];
+
+          // Map the first arrays of leftleg and rightleg to their respective data points
+          selectedExerciseData = leftLegData.map((value, index) => ({
+            name: `${index + 1}`,
+            value1: value, // Left leg data
+            value2: rightLegData[index] || 0, // Right leg data (0 if no data available)
+          }));
+
+          break;
+        case "Extension Lag Test":
+          const extensionLagData =
+            assessment.assessment.exercises["Extension Lag Test"];
+
+          // Access only the first array of left-leg-active and right-leg-active
+          const leftLegActive = extensionLagData["left-leg-active"][0] || [];
+          const rightLegActive = extensionLagData["right-leg-active"][0] || [];
+
+          // Map the data for left and right leg active cases
+          selectedExerciseData = leftLegActive.map((value, index) => ({
+            name: `Point ${index + 1}`,
+            value1: value, // Left leg active data
+            value2: rightLegActive[index] || 0, // Right leg active data (0 if no data available)
+          }));
+          break;
+        case "Dynamic Balance Test":
+          const dynamicBalanceData =
+            assessment.assessment.exercises["Dynamic Balance Test"];
+
+          // Access only the first array of left-leg-wos-1 and right-leg-wos-1
+          const leftLegWOS1 = dynamicBalanceData["left-leg-wos-1"][0] || [];
+          const rightLegWOS1 = dynamicBalanceData["right-leg-wos-1"][0] || [];
+
+          // Map the data for left-leg-wos-1 and right-leg-wos-1
+          selectedExerciseData = leftLegWOS1.map((value, index) => ({
+            name: `Point ${index + 1}`,
+            value1: value, // Left leg WOS-1 data
+            value2: rightLegWOS1[index] || 0, // Right leg WOS-1 data (0 if no data available)
+          }));
+          break;
+        case "Static Balance Test":
+          const staticBalanceData =
+            assessment.assessment.exercises["Static Balance Test"];
+
+          // Access only the first array of left-leg-eyes-closed-5 and right-leg-eyes-closed-7
+          const leftLegEyesClosed5 =
+            staticBalanceData["left-leg-eyes-closed-5"][0] || [];
+          const rightLegEyesClosed7 =
+            staticBalanceData["right-leg-eyes-closed-7"][0] || [];
+
+          // Map the data for left-leg-eyes-closed-5 and right-leg-eyes-closed-7
+          selectedExerciseData = leftLegEyesClosed5.map((value, index) => ({
+            name: `Point ${index + 1}`,
+            value1: value, // Left leg eyes closed 5 data
+            value2: rightLegEyesClosed7[index] || 0, // Right leg eyes closed 7 data (0 if no data available)
+          }));
+          break;
+        case "Staircase Climbing Test":
+          const staircaseClimbingData =
+            assessment.assessment.exercises["Staircase Climbing Test"];
+
+          // Access only the first array of left-leg-wos-1 and right-leg-wos-1
+          const leftLegStepData =
+            staircaseClimbingData["left-leg-wos-1"][0] || []; // Renamed variable
+          const rightLegStepData =
+            staircaseClimbingData["right-leg-wos-1"][0] || []; // Renamed variable
+
+          // Map the data for left-leg-wos-1 and right-leg-wos-1 with new variable names
+          selectedExerciseData = leftLegStepData.map((value, index) => ({
+            name: `Point ${index + 1}`,
+            value1: value, // Left leg step data (previously left-leg-wos-1)
+            value2: rightLegStepData[index] || 0, // Right leg step data (previously right-leg-wos-1)
+          }));
+          break;
+        case "Proprioception Test":
+          const proprioceptionData =
+            assessment.assessment.exercises["Proprioception Test"];
+
+          // Access only the first array of leftleg and rightleg
+          const leftLegProprioceptionData =
+            proprioceptionData["leftleg"][0] || []; // First array of left leg data
+          const rightLegProprioceptionData =
+            proprioceptionData["rightleg"][0] || []; // First array of right leg data
+
+          // Map the data for leftleg and rightleg
+          selectedExerciseData = leftLegProprioceptionData.map(
+            (value, index) => ({
+              name: `Point ${index + 1}`,
+              value1: value, // Left leg proprioception data
+              value2: rightLegProprioceptionData[index] || 0, // Right leg proprioception data (0 if no data available)
+            })
+          );
+          break;
+
+        default:
+          console.log(`Exercise not found: ${exerciseName}`);
+      }
     } else if (assessment.selected === "model_recovery") {
       // Access exercise data from model recovery
       selectedExerciseData = assessment.assessment.Exercise[
@@ -225,19 +283,6 @@ const Detailreport = (assessment, index, reportData, selected) => {
 
   // Calculate the stroke offset
   const offset = Math.round(circumference - (value / 2 / 100) * circumference); // Correctly calculate the offset
-  console.log(
-    "value",
-    value,
-    " ",
-    "radius",
-    radius,
-    " ",
-    "Circumference",
-    circumference,
-    " ",
-    "Offset",
-    offset
-  );
 
   const data = [
     {
@@ -284,10 +329,571 @@ const Detailreport = (assessment, index, reportData, selected) => {
     },
   ];
 
+  const [isDrawer, setIsDrawer] = useState(false);
+  const [selectItems, setSelectItems] = useState(null);
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 8,
+  });
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [rows, setRows] = useState([]);
+  const [columns, setColumns] = useState([]);
+
+  // Assuming exercises is the object containing exercise details from the assessment.
   const exercises =
     assessment.selected === "assessment"
       ? assessment.assessment.exercises
       : assessment.reportData.Model_Recovery[0].Exercise;
+
+  // Function to toggle the dropdown
+  const drawerOpen = (state) => {
+    setIsDrawer(state);
+  };
+
+  // Function to handle selecting an item from the dropdown
+  const handleDrawerItem = (item) => {
+    setSelectItems(item);
+    setIsDrawer(false); // Close the drawer when an item is selected
+
+    // Dynamically update rows and columns based on the selected exercise
+    updateTableData(item);
+  };
+
+  // Function to update table data based on the selected exercise
+  const updateTableData = (exerciseName) => {
+    const selectedExerciseData = exercises[exerciseName];
+
+    let formattedRows = [];
+    let formattedColumns = [{ field: "id", headerName: "ID", width: 90 }];
+
+    // Use switch-case to handle different exercises and set columns/rows accordingly
+    switch (exerciseName) {
+      case "Mobility Test":
+        // Define column structure for the table
+        formattedColumns.push({ field: "leg", headerName: "Leg", width: 150 });
+        formattedColumns.push({
+          field: "cycles",
+          headerName: "Cycles",
+          width: 100,
+        });
+        formattedColumns.push({
+          field: "minAngle",
+          headerName: "Min Angle",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "maxAngle",
+          headerName: "Max Angle",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "velocity",
+          headerName: "Velocity",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "pain",
+          headerName: "Pain",
+          width: 150,
+        });
+
+        // Process the data for each leg (leftleg, rightleg)
+        formattedRows = Object.keys(selectedExerciseData)
+          .map((key, index) => {
+            const legData = selectedExerciseData[key];
+
+            // Exclude the first two arrays from the leg data (use slice to skip the first two elements)
+            const filteredLegData = legData.slice(2); // Skip the first two arrays
+
+            // Filter the data where index is odd (index % 2 === 1)
+            const oddIndexLegData = filteredLegData.filter(
+              (_, i) => i % 2 === 1
+            );
+
+            // Initialize a counter for cycles (starting from 1)
+            let cycleCounter = 1;
+
+            // Extract different parameters (e.g., min angle, max angle, velocity, pain)
+            const legValues = oddIndexLegData
+              .map((dataArray) => {
+                // Only include rows where all required values are present (not empty or undefined)
+                const minAngle = dataArray[0] || null;
+                const maxAngle = dataArray[1] || null;
+                const velocity = dataArray[2] || null;
+                const pain = dataArray[3] || null;
+
+                // Check if any of the values is null (i.e., no valid data) and skip the row
+                if (minAngle && maxAngle && velocity && pain) {
+                  return {
+                    cycles: cycleCounter++, // Increment cycle counter for each row
+                    minAngle: minAngle, // Minimum angle
+                    maxAngle: maxAngle, // Maximum angle
+                    velocity: velocity, // Velocity
+                    pain: pain, // Pain
+                  };
+                }
+
+                // If any value is missing, skip this row
+                return null;
+              })
+              .filter((value) => value !== null); // Remove any rows with null values
+
+            // Flatten and map the values into rows
+            return legValues.map((value, i) => ({
+              id: index * 100 + i, // Unique ID for each row
+              leg: key, // "leftleg" or "rightleg"
+              cycles: value.cycles,
+              minAngle: value.minAngle,
+              maxAngle: value.maxAngle,
+              velocity: value.velocity,
+              pain: value.pain,
+            }));
+          })
+          .flat(); // Flattening the nested arrays into a single array of rows
+
+        break;
+      case "Dynamic Balance Test":
+        // Define column structure for the table
+        formattedColumns.push({ field: "leg", headerName: "Leg", width: 150 });
+        formattedColumns.push({
+          field: "cycles",
+          headerName: "Cycles",
+          width: 100,
+        });
+        formattedColumns.push({
+          field: "shiftToStand",
+          headerName: "Shift to Stand",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "standToShift",
+          headerName: "Stand to Shift",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "walkTime",
+          headerName: "Walk Time",
+          width: 150,
+        });
+
+        // Process the data for each leg (e.g., "left-leg-wos-1")
+        formattedRows = Object.keys(selectedExerciseData)
+          .map((key, index) => {
+            const legData = selectedExerciseData[key];
+
+            // Skip the first array (index 0) in the leg data and process the rest
+            const filteredLegData = legData.slice(1); // Skip the first array
+
+            // Extract cycle number from the leg name (e.g., "left-leg-wos-1" => cycle 1)
+            const cycleNumber = key.split("-").pop(); // Extracts '1' or '2' from keys like 'left-leg-wos-1'
+
+            // Initialize a counter for cycles (starting from 1)
+            let cycleCounter = parseInt(cycleNumber); // Set cycle number based on leg name
+
+            // Extract the necessary values for each row
+            const legValues = filteredLegData
+              .map((dataArray) => {
+                const shiftToStand = dataArray[0] || "N/A"; // Assuming shift to stand is at index 0
+                const standToShift = dataArray[1] || "N/A"; // Assuming stand to shift is at index 1
+                const walkTime = dataArray[2] || "N/A"; // Assuming walk time is at index 2
+
+                // Only include rows where all required values are present (not empty or undefined)
+                if (
+                  shiftToStand !== "N/A" &&
+                  standToShift !== "N/A" &&
+                  walkTime !== "N/A"
+                ) {
+                  return {
+                    cycles: cycleCounter, // Set cycle number based on the leg name
+                    shiftToStand: shiftToStand, // Shift to stand
+                    standToShift: standToShift, // Stand to shift
+                    walkTime: walkTime, // Walk time
+                  };
+                }
+
+                // If any value is missing, skip this row
+                return null;
+              })
+              .filter((value) => value !== null); // Remove any rows with null values
+
+            // Flatten and map the values into rows
+            return legValues.map((value, i) => ({
+              id: index * 100 + i, // Unique ID for each row
+              leg: key, // "left-leg-wos-1"
+              cycles: value.cycles,
+              shiftToStand: value.shiftToStand,
+              standToShift: value.standToShift,
+              walkTime: value.walkTime,
+            }));
+          })
+          .flat(); // Flattening the nested arrays into a single array of rows
+
+        break;
+      case "Static Balance Test":
+        // Define column structure for the table
+        formattedColumns.push({ field: "leg", headerName: "Leg", width: 150 });
+        formattedColumns.push({
+          field: "cycles",
+          headerName: "Cycle",
+          width: 100,
+        });
+        formattedColumns.push({
+          field: "balanceTime",
+          headerName: "Balance Time",
+          width: 150,
+        });
+
+        // Process the data for each leg (e.g., "left-leg-eyes-closed-1")
+        formattedRows = Object.keys(selectedExerciseData)
+          .map((key, index) => {
+            const legData = selectedExerciseData[key];
+
+            // Extract cycle number from the leg name (e.g., "left-leg-eyes-closed-1" => cycle 1)
+            const cycleNumber = key.split("-").pop(); // Extracts '1' or '2' from keys like 'left-leg-eyes-closed-1'
+
+            // Extract balance time from the second array (e.g., ['5'])
+            const balanceTimeArray = legData[1]; // This is the second array (e.g., ['5'])
+            const balanceTime =
+              balanceTimeArray.length > 0 ? balanceTimeArray[0] : "N/A"; // Use the value from the second array
+
+            // Initialize the cycle counter
+            let cycleCounter = parseInt(cycleNumber); // Set cycle number based on leg name
+
+            // Extract the necessary values for each row
+            const legValues = [
+              {
+                cycles: cycleCounter, // Set cycle number based on the leg name
+                balanceTime: balanceTime, // Balance time (from the second array)
+              },
+            ];
+
+            // Flatten and map the values into rows
+            return legValues.map((value, i) => ({
+              id: index * 100 + i, // Unique ID for each row
+              leg: key, // "left-leg-eyes-closed-1"
+              cycles: value.cycles,
+              balanceTime: value.balanceTime,
+            }));
+          })
+          .flat(); // Flattening the nested arrays into a single array of rows
+
+        break;
+
+      case "Extension Lag Test":
+        // Define column structure for the table
+        formattedColumns.push({ field: "leg", headerName: "Leg", width: 150 });
+        formattedColumns.push({
+          field: "cycles",
+          headerName: "Cycles",
+          width: 100,
+        });
+        formattedColumns.push({
+          field: "minAngle",
+          headerName: "Min Angle",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "maxAngle",
+          headerName: "Max Angle",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "velocity",
+          headerName: "Velocity",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "pain",
+          headerName: "Pain",
+          width: 150,
+        });
+
+        // Process the data for each leg (left-leg-active, left-leg-passive, right-leg-active, right-leg-passive)
+        formattedRows = Object.keys(selectedExerciseData)
+          .map((key, index) => {
+            const legData = selectedExerciseData[key];
+
+            // Filter out empty values for the data and use slice to exclude the first two arrays (if necessary)
+            const filteredLegData = legData.slice(2); // Skip the first two arrays
+
+            // Filter the data where index is odd (index % 2 === 1)
+            const oddIndexLegData = filteredLegData.filter(
+              (_, i) => i % 2 === 1
+            );
+
+            // Initialize a counter for cycles (starting from 1)
+            let cycleCounter = 1;
+
+            // Extract different parameters (e.g., min angle, max angle, velocity, pain)
+            const legValues = oddIndexLegData
+              .map((dataArray) => {
+                // Only include rows where all required values are present (not empty or undefined)
+                const minAngle = dataArray[0] || null;
+                const maxAngle = dataArray[1] || null;
+                const velocity = dataArray[2] || null;
+                const pain = dataArray[3] || null;
+
+                // Check if any of the values is null (i.e., no valid data) and skip the row
+                if (minAngle && maxAngle && velocity && pain) {
+                  return {
+                    cycles: cycleCounter++, // Increment cycle counter for each row
+                    minAngle: minAngle, // Minimum angle
+                    maxAngle: maxAngle, // Maximum angle
+                    velocity: velocity, // Velocity
+                    pain: pain, // Pain
+                  };
+                }
+
+                // If any value is missing, skip this row
+                return null;
+              })
+              .filter((value) => value !== null); // Remove any rows with null values
+
+            // Flatten and map the values into rows
+            return legValues.map((value, i) => ({
+              id: index * 100 + i, // Unique ID for each row
+              leg: key, // "left-leg-active", "left-leg-passive", etc.
+              cycles: value.cycles,
+              minAngle: value.minAngle,
+              maxAngle: value.maxAngle,
+              velocity: value.velocity,
+              pain: value.pain,
+            }));
+          })
+          .flat(); // Flattening the nested arrays into a single array of rows
+
+        break;
+
+      case "Walk and Gait Analysis":
+        // Define column structure for the table
+        formattedColumns.push({ field: "leg", headerName: "Leg", width: 150 });
+        formattedColumns.push({
+          field: "cycle",
+          headerName: "Cycle",
+          width: 100,
+        });
+        formattedColumns.push({
+          field: "distance",
+          headerName: "Distance",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "standTime",
+          headerName: "Stand Time",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "avgSwingTime",
+          headerName: "Avg Swing Time",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "stancePhase",
+          headerName: "Stance Phase",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "strideLength",
+          headerName: "Stride Length",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "meanVelocity",
+          headerName: "Mean Velocity",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "cadence",
+          headerName: "Cadence",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "stepCount",
+          headerName: "Step Count",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "activeTime",
+          headerName: "Active Time",
+          width: 150,
+        });
+
+        // Process the data for each leg (e.g., "leftleg-1", "rightleg-1")
+        formattedRows = Object.keys(selectedExerciseData)
+          .map((key, index) => {
+            const legData = selectedExerciseData[key];
+
+            // Extract cycle number from the leg name (e.g., "leftleg-1" => cycle 1)
+            const cycleNumber = key.split("-").pop(); // Extracts '1' from keys like 'leftleg-1'
+
+            // Extract the second array (e.g., [0, 0, 0, 0, 0, 0, 8, 8, 14])
+            const gaitValues = legData[1]; // This is the second array
+
+            // Initialize the cycle counter
+            let cycleCounter = parseInt(cycleNumber); // Set cycle number based on leg name
+
+            // Assign values to the corresponding fields
+            const values = {
+              distance: gaitValues[0] !== undefined ? gaitValues[0] : "0",
+              standTime: gaitValues[1] !== undefined ? gaitValues[1] : "0",
+              avgSwingTime: gaitValues[2] !== undefined ? gaitValues[2] : "0",
+              stancePhase: gaitValues[3] !== undefined ? gaitValues[3] : "0",
+              strideLength: gaitValues[4] !== undefined ? gaitValues[4] : "0",
+              meanVelocity: gaitValues[5] !== undefined ? gaitValues[5] : "0",
+              cadence: gaitValues[6] !== undefined ? gaitValues[6] : "0",
+              stepCount: gaitValues[7] !== undefined ? gaitValues[7] : "0",
+              activeTime: gaitValues[8] !== undefined ? gaitValues[8] : "0",
+            };
+
+            // Format the values into rows
+            const legValues = [
+              {
+                cycle: cycleCounter,
+                ...values,
+              },
+            ];
+
+            return legValues.map((value, i) => ({
+              id: index * 100 + i, // Unique ID for each row
+              leg: key, // "leftleg-1"
+              cycle: value.cycle,
+              distance: value.distance,
+              standTime: value.standTime,
+              avgSwingTime: value.avgSwingTime,
+              stancePhase: value.stancePhase,
+              strideLength: value.strideLength,
+              meanVelocity: value.meanVelocity,
+              cadence: value.cadence,
+              stepCount: value.stepCount,
+              activeTime: value.activeTime,
+            }));
+          })
+          .flat(); // Flattening the nested arrays into a single array of rows
+
+        break;
+
+      case "Proprioception Test":
+        // Define column structure for the table
+        formattedColumns.push({ field: "leg", headerName: "Leg", width: 150 });
+        formattedColumns.push({
+          field: "cycles",
+          headerName: "Cycles",
+          width: 100,
+        });
+        formattedColumns.push({
+          field: "minAngle",
+          headerName: "Min Angle",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "maxAngle",
+          headerName: "Max Angle",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "velocity",
+          headerName: "Velocity",
+          width: 150,
+        });
+        formattedColumns.push({
+          field: "pain",
+          headerName: "Pain",
+          width: 150,
+        });
+
+        // Process the data for each leg (leftleg, rightleg)
+        formattedRows = Object.keys(selectedExerciseData)
+          .map((key, index) => {
+            const legData = selectedExerciseData[key];
+
+            // Filter out empty values for the data and use slice to exclude the first two arrays (if necessary)
+            const filteredLegData = legData.slice(2); // Skip the first two arrays
+
+            // Filter the data where index is odd (index % 2 === 1)
+            const oddIndexLegData = filteredLegData.filter(
+              (_, i) => i % 2 === 1
+            );
+
+            // Initialize a counter for cycles (starting from 1)
+            let cycleCounter = 1;
+
+            // Extract different parameters (e.g., min angle, max angle, velocity, pain)
+            const legValues = oddIndexLegData
+              .map((dataArray) => {
+                // Only include rows where all required values are present (not empty or undefined)
+                const minAngle = dataArray[0] || null;
+                const maxAngle = dataArray[1] || null;
+                const velocity = dataArray[2] || null;
+                const pain = dataArray[3] || null;
+
+                // Check if any of the values is null (i.e., no valid data) and skip the row
+                if (minAngle && maxAngle && velocity && pain) {
+                  return {
+                    cycles: cycleCounter++, // Increment cycle counter for each row
+                    minAngle: minAngle, // Minimum angle
+                    maxAngle: maxAngle, // Maximum angle
+                    velocity: velocity, // Velocity
+                    pain: pain, // Pain
+                  };
+                }
+
+                // If any value is missing, skip this row
+                return null;
+              })
+              .filter((value) => value !== null); // Remove any rows with null values
+
+            // Flatten and map the values into rows
+            return legValues.map((value, i) => ({
+              id: index * 100 + i, // Unique ID for each row
+              leg: key, // "leftleg", "rightleg"
+              cycles: value.cycles,
+              minAngle: value.minAngle,
+              maxAngle: value.maxAngle,
+              velocity: value.velocity,
+              pain: value.pain,
+            }));
+          })
+          .flat(); // Flattening the nested arrays into a single array of rows
+
+        break;
+
+      // Add more cases for other exercises
+      default:
+        // Default case for exercises that don't match specific cases
+        formattedColumns.push({
+          field: "name",
+          headerName: "Parameter",
+          width: 200,
+        });
+        formattedColumns.push({
+          field: "values",
+          headerName: "Values",
+          width: 150,
+        });
+
+        formattedRows = Object.keys(selectedExerciseData).map((key, index) => ({
+          id: index + 1,
+          name: key, // Generic name
+          values: selectedExerciseData[key].join(", "), // Joining values
+        }));
+        break;
+    }
+
+    // Update the state with new rows and columns
+    setRows(formattedRows);
+    setColumns(formattedColumns);
+  };
+
+  // Function to handle row selection
+  const handleRowSelection = (newSelectedRows) => {
+    setSelectedRows(newSelectedRows);
+  };
+
+  // Handle row click to perform actions like viewing details
+  const handleRowClick = (row) => {
+    // Implement logic when a row is clicked, such as opening a modal or showing details
+    console.log("Row clicked: ", row);
+  };
 
   return (
     <div className="w-full h-full flex flex-col gap-4">
@@ -586,7 +1192,7 @@ const Detailreport = (assessment, index, reportData, selected) => {
             </div>
           </div>
           <div className="w-full h-[60%] flex flex-row">
-            <div className="w-[69.25%] h-full flex flex-col gap-1 bg-white rounded-lg px-4 py-4">
+            <div className="w-full h-full flex flex-col gap-1 bg-white rounded-lg px-4 py-4">
               <div className="w-full flex flex-row justify-between items-center">
                 <p className="w-1/2 font-poppins font-medium text-lg">
                   Assessment-{assessment.index + 1}
@@ -611,7 +1217,7 @@ const Detailreport = (assessment, index, reportData, selected) => {
                     <div
                       className={`absolute mt-2 right-4 bg-white p-4 rounded-lg shadow-lg w-[48%] transition-all duration-300 ease-in-out font-poppins z-50 ${
                         isOpen
-                          ? "max-h-[200px] opacity-100"
+                          ? "max-h-[300px] opacity-100"
                           : "max-h-0 opacity-0"
                       } overflow-hidden`}
                     >
@@ -637,12 +1243,11 @@ const Detailreport = (assessment, index, reportData, selected) => {
                   )}
                 </div>
               </div>
-
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   width={200}
                   height={300}
-                  data={chartData} // Use chartData state for the AreaChart
+                  data={chartData} // Pass chartData for both leftleg and rightleg
                   margin={{
                     top: 20,
                     right: 30,
@@ -669,21 +1274,84 @@ const Detailreport = (assessment, index, reportData, selected) => {
                   <Tooltip
                     contentStyle={{ fontFamily: "Poppins", fontSize: 12 }}
                   />
+
+                  {/* First Area for Left Leg */}
                   <Area
                     type="monotone"
-                    dataKey="value"
+                    dataKey="value1" // Left leg data
                     stackId="1"
                     stroke="#FF8F6D"
                     fill="#FF8F6D"
+                  />
+
+                  {/* Second Area for Right Leg */}
+                  <Area
+                    type="monotone"
+                    dataKey="value2" // Right leg data
+                    stackId="2"
+                    stroke="#82ca9d"
+                    fill="#82ca9d"
                   />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
             <div></div>
           </div>
-          <div className="w-full h-[5%] ">
-            <div className="w-full h-[720px] overflow-y-auto scrollbar-custom3">
-              <MaterialReactTable table={table} className=" mrt-table" />
+          <div className="w-full h-[5%]">
+            <div className="w-full h-[720px] overflow-y-auto scrollbar-custom3 relative">
+              <Paper sx={{ height: 600, width: "100%", padding: 4 }}>
+                <div className="flex justify-between items-center">
+                  <div>OVERVIEW</div>
+                  <div
+                    className="flex flex justify-between items-center bg-white border-[#D5D5D5] border-[1px] rounded-lg px-4 py-2 cursor-pointer gap-2"
+                    onClick={() => drawerOpen(!isDrawer)}
+                  >
+                    <p className="font-poppins font-medium text-black text-sm">
+                      {selectItems ? `${selectItems}` : "Select Exercise"}
+                    </p>
+                    <ChevronDownIcon
+                      className={`h-5 w-5 text-[#9CA3AF] transition-transform duration-300 ${
+                        isDrawer ? "rotate-180" : ""
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                {/* Dropdown Items */}
+                {isDrawer && (
+                  <div
+                    className={`absolute mt-2 right-4 bg-white p-4 rounded-lg shadow-lg w-[48%] transition-all duration-300 ease-in-out font-poppins z-50 ${
+                      isDrawer
+                        ? "max-h-[300px] opacity-100"
+                        : "max-h-0 opacity-0"
+                    } overflow-hidden`}
+                  >
+                    <ul>
+                      {Object.keys(exercises).map((exerciseKey) => (
+                        <li
+                          key={exerciseKey}
+                          className="cursor-pointer py-2 px-4 hover:bg-gray-200"
+                          onClick={() => handleDrawerItem(exerciseKey)} // Trigger handleSelectItem on click
+                        >
+                          {exerciseKey}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <DataGrid
+                  rows={rows}
+                  columns={columns}
+                  initialState={{ pagination: { paginationModel } }}
+                  pageSizeOptions={[5, 10]}
+                  onSelectionModelChange={(newSelection) =>
+                    handleRowSelection(newSelection)
+                  }
+                  onRowClick={(e) => handleRowClick(e.row)} // handle row click here
+                  sx={{ border: 0 }}
+                />
+              </Paper>
             </div>
           </div>
         </div>

@@ -452,7 +452,7 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
                   />
                 </div>
               )}
-              <div>
+              <div className="overflow-y-scroll">
                 {(isToggled
                   ? reportData.Model_Recovery
                   : reportData.Assessment

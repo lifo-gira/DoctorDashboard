@@ -15,10 +15,10 @@ import Cookies from "js-cookie";
 import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { jwtDecode as jwt_decode } from "jwt-decode";
-import VideoCall from "./VideoCall";
+// import VideoCall from "./VideoCall";
 import { ZIM } from "zego-zim-web";
 import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
-import { Chat } from "@zegocloud/zimkit-react";
+import VideoCall from "./VideoCall";
 
 function App() {
   const [activeComponent, setActiveComponent] = useState("dashboard");
@@ -33,41 +33,44 @@ const [password, setPassword] = useState("");
 const [isChecked, setIsChecked] = useState(false);
 const [isloged, setisloged] = useState(false);
 const [status, setStatus] = useState(null);
+const [chatKey, setChatKey] = useState(Date.now());
 
-  const renderComponent = () => {
-    switch (activeComponent) {
-      case "dashboard":
-        return <Dashboard setCurrentPage={setActiveComponent} toReportPage={toReportPage}/>;
-      case "schedule":
-        return <Schedule setCurrentPage={setActiveComponent} toReportPage={toReportPage}/>;
-      case "regimeBuilder":
-        return <RegimeBuilder setCurrentPage={handleComponentChange} regimeData={regimeBuilderData} toReportPage={toReportPage}/>; 
-      case "sample":
-        return <Sample />;
-      case "chat":
-        return <Chatting uname={(() => { try { return JSON.parse(localStorage.getItem("user"))?.user_id; } catch (e) { return null; } })()} />
-        ;
-      case "events":
-        return <Events />;
-        case "reports":
-          return (
-            <Reports
-            setCurrentPage={(component, props) => {
-              if (component === "regimeBuilder") {
-                console.log('Received data for toRegime:', props.toRegime);
-              }
-              handleComponentChange(component, props); // Use the new function
-            }}
-            reportData={reportData}
-            toReportPage={toReportPage}
-          />
-          );
-      case "detailreports":
-        return <Detailreport assessment={detailReportData.assessment} index={detailReportData.index} reportData={detailReportData.reportData} selected={detailReportData.selected}/>
-      default:
-        return <RegimeBuilder />;
-    }
-  };
+
+const renderComponent = () => {
+  switch (activeComponent) {
+    case "dashboard":
+      return <Dashboard key="dashboard" setCurrentPage={setActiveComponent} toReportPage={toReportPage} />;
+    case "schedule":
+      return <Schedule key="schedule" setCurrentPage={setActiveComponent} toReportPage={toReportPage} />;
+    case "regimeBuilder":
+      return <RegimeBuilder key="regimeBuilder" setCurrentPage={handleComponentChange} regimeData={regimeBuilderData} toReportPage={toReportPage} />;
+    case "sample":
+      return <Sample key="sample" />;
+    case "chat":
+      return <Chatting key="chat" uname={(() => { try { return JSON.parse(localStorage.getItem("user"))?.user_id; } catch (e) { return null; } })()} />;
+    case "events":
+      return <Events key="events" />;
+    case "reports":
+      return (
+        <Reports
+          key="reports"
+          setCurrentPage={(component, props) => {
+            if (component === "regimeBuilder") {
+              console.log('Received data for toRegime:', props.toRegime);
+            }
+            handleComponentChange(component, props); // Use the new function
+          }}
+          reportData={reportData}
+          toReportPage={toReportPage}
+        />
+      );
+    case "detailreports":
+      return <Detailreport key="detailreports" assessment={detailReportData.assessment} index={detailReportData.index} reportData={detailReportData.reportData} selected={detailReportData.selected} />;
+    default:
+      return <RegimeBuilder key="default" />;
+  }
+};
+
 
 
 
@@ -291,8 +294,8 @@ const handleLoginchange = async () => {
       const doctorName = data.doctor_assigned;
   
       // Generate KitToken
-      const appID = 1455965454;
-      const serverSecret = "c49644efc7346cc2a7a899aed401ad76";
+      const appID = 1296580694;
+      const serverSecret = "47e42973e5492120a04fc8c8b839232a";
       const KitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
         appID,
         serverSecret,

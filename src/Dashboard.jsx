@@ -7,10 +7,11 @@ import { ZIM } from "zego-zim-web";
 import { Typography } from "@material-tailwind/react";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { ChevronRightIcon, ArrowUpRightIcon } from "@heroicons/react/16/solid";
-import VideoCall from "./VideoCall";
+// import VideoCall from "./VideoCall";
 import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
+import VideoCall from "./VideoCall";
 
-const Dashboard = ({setCurrentPage,toReportPage}) => {
+const Dashboard = ({ setCurrentPage, toReportPage }) => {
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const [screenheight, setScreenHeight] = useState(window.innerHeight);
   var storedData = localStorage.getItem("user");
@@ -22,7 +23,7 @@ const Dashboard = ({setCurrentPage,toReportPage}) => {
       setScreenWidth(window.innerWidth);
       setScreenHeight(window.innerHeight);
     };
-    console.log(localStorage.getItem("_id",parsedData._id));
+    console.log(localStorage.getItem("_id", parsedData._id));
     // Add event listener for window resize
     window.addEventListener("resize", handleResize);
 
@@ -54,34 +55,38 @@ const Dashboard = ({setCurrentPage,toReportPage}) => {
           throw new Error("Failed to fetch data");
         }
         const data = await response.json();
-  
+
         // Retrieve doctor_id from localStorage
         const doctorId = localStorage.getItem("_id");
-  
+
         // Filter patients based on doctor_id
-        const filteredPatients = data.filter(patient => patient.doctor_id === doctorId);
-  
+        const filteredPatients = data.filter(
+          (patient) => patient.doctor_id === doctorId
+        );
+
         setPatients(filteredPatients); // Set the filtered patients
         setLoading(false);
-  
+
         // Count occurrences of flag == -1 and flag == 0
         const minusOneCount = filteredPatients.filter(
           (patient) => patient.flag === -1
         ).length;
-        const zeroCount = filteredPatients.filter((patient) => patient.flag === 0).length;
-  
+        const zeroCount = filteredPatients.filter(
+          (patient) => patient.flag === 0
+        ).length;
+
         setFlagMinusOneCount(minusOneCount);
         setFlagZeroCount(zeroCount);
-  
+
         const now = new Date(); // Get current date
         let closest = null;
-  
+
         // Find the closest upcoming event in the filtered patients
         filteredPatients.forEach((patient) => {
           patient.events_date.forEach((dateStr) => {
             const dateMatch = dateStr.match(/\(([^)]+)\)/);
             if (!dateMatch) return; // Skip if no match
-  
+
             const dateParts = dateMatch[1].split(",").map(Number);
             // Construct the event date in UTC
             const eventDate = new Date(
@@ -93,10 +98,10 @@ const Dashboard = ({setCurrentPage,toReportPage}) => {
                 dateParts[4]
               )
             ); // Use UTC hours and minutes
-  
+
             console.log(`Checking event date: ${eventDate.toISOString()}`); // Log the event date
             console.log(`Current date: ${now.toISOString()}`); // Log the current date
-  
+
             // Check if the event is in the future
             if (eventDate >= now) {
               // If there's no closest event or the current event is closer, update closest
@@ -111,19 +116,19 @@ const Dashboard = ({setCurrentPage,toReportPage}) => {
             }
           });
         });
-  
+
         setClosestEvent(closest); // Set the closest event
-  
+
         console.log("Processed patient data:", filteredPatients); // Log fetched and processed data
       } catch (error) {
         console.error("Error fetching patient information:", error);
         setLoading(true);
       }
     };
-  
+
     fetchData();
   }, []);
-  
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const closeDropdown = () => setDropdownOpen(false);
@@ -148,63 +153,65 @@ const Dashboard = ({setCurrentPage,toReportPage}) => {
       )
     : [];
 
-    const handleCallClick = async (userId) => {
-      try {
-        // Fetch patient information
-        const response = await fetch(`https://api-wo6.onrender.com/patient-info/${userId}`);
-        console.log("IN")
-        if (!response.ok) {
-          throw new Error("Failed to fetch patient information");
-        }
-        const data = await response.json();
-        const documentId = data._id;
-        const patientId = data.patient_id;
-        const doctorId = data.doctor_id;
-        const patientName = data.user_id;
-        const doctorName = data.doctor_assigned;
-    
-        // Generate KitToken
-        const appID = 1455965454;
-        const serverSecret = "c49644efc7346cc2a7a899aed401ad76";
-        const KitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-          appID,
-          serverSecret,
-          documentId,
-          doctorId,
-          doctorName
-        );
-    
-        // Initialize Zego Cloud SDK
-        const zeroCloudInstance = ZegoUIKitPrebuilt.create(KitToken);
-        zeroCloudInstance.addPlugins({ ZIM });
-    
-        // Send video call invitation
-        const callee = patientId;
-        const calleeUsername = patientName;
-        zeroCloudInstance
-          .sendCallInvitation({
-            callees: [{ userID: callee, userName: calleeUsername }],
-            callType: ZegoUIKitPrebuilt.InvitationTypeVideoCall,
-            timeout: 60,
-          })
-          .then((res) => {
-            console.warn(res);
-            if (res.errorInvitees.length) {
-              alert("The user does not exist or is offline.");
-              return null;
-            }
-          })
-          .catch((err) => {
-            console.error(err);
-            // alert("The user does not exist or is offline.");
-            return null;
-          });
-      } catch (error) {
-        console.error(error);
-        return;
-        // Handle errors
+  const handleCallClick = async (userId) => {
+    try {
+      // Fetch patient information
+      const response = await fetch(
+        `https://api-wo6.onrender.com/patient-info/${userId}`
+      );
+      console.log("IN");
+      if (!response.ok) {
+        throw new Error("Failed to fetch patient information");
       }
-    };
+      const data = await response.json();
+      const documentId = data._id;
+      const patientId = data.patient_id;
+      const doctorId = data.doctor_id;
+      const patientName = data.user_id;
+      const doctorName = data.doctor_assigned;
+
+      // Generate KitToken
+      const appID = 1455965454;
+      const serverSecret = "c49644efc7346cc2a7a899aed401ad76";
+      const KitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+        appID,
+        serverSecret,
+        documentId,
+        doctorId,
+        doctorName
+      );
+
+      // Initialize Zego Cloud SDK
+      const zeroCloudInstance = ZegoUIKitPrebuilt.create(KitToken);
+      zeroCloudInstance.addPlugins({ ZIM });
+
+      // Send video call invitation
+      const callee = patientId;
+      const calleeUsername = patientName;
+      zeroCloudInstance
+        .sendCallInvitation({
+          callees: [{ userID: callee, userName: calleeUsername }],
+          callType: ZegoUIKitPrebuilt.InvitationTypeVideoCall,
+          timeout: 60,
+        })
+        .then((res) => {
+          console.warn(res);
+          if (res.errorInvitees.length) {
+            alert("The user does not exist or is offline.");
+            return null;
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          // alert("The user does not exist or is offline.");
+          return null;
+        });
+    } catch (error) {
+      console.error(error);
+      return;
+      // Handle errors
+    }
+  };
 
   return (
     <div className="w-full h-full">
@@ -254,10 +261,12 @@ const Dashboard = ({setCurrentPage,toReportPage}) => {
                         onClick={() => {
                           setSearchQuery(""); // Clear search query after selection
                           closeDropdown(); // Close dropdown after selection
+                          setCurrentPage("reports"); // Navigate to reports page
+                          toReportPage(patient); // Pass the mapped patient data to the report page function
                         }}
                       >
                         <p>{patient.user_id}</p>
-                        {/* You can add more patient details here */}
+                        {/* Add more patient details here if needed */}
                       </div>
                     ))
                   ) : (
@@ -425,22 +434,22 @@ const Dashboard = ({setCurrentPage,toReportPage}) => {
                 </div>
 
                 <div className="w-1/6 flex flex-row justify-end items-center">
-                <div 
-        className="flex flex-row gap-1 items-center" 
-        onClick={() => {
-          setCurrentPage("reports"); // Set the current page to reports
-          toReportPage(patient); // Pass the mapped patient data here
-          console.log(patient); // For debugging, you can remove this later
-        }}
-      >
-        <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
-          Report
-        </div>
-        <ArrowUpRightIcon
-          color="blue"
-          className="w-4 h-4 cursor-pointer"
-        />
-      </div>
+                  <div
+                    className="flex flex-row gap-1 items-center"
+                    onClick={() => {
+                      setCurrentPage("reports"); // Set the current page to reports
+                      toReportPage(patient); // Pass the mapped patient data here
+                      console.log(patient); // For debugging, you can remove this later
+                    }}
+                  >
+                    <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
+                      Report
+                    </div>
+                    <ArrowUpRightIcon
+                      color="blue"
+                      className="w-4 h-4 cursor-pointer"
+                    />
+                  </div>
                 </div>
               </div>
             ))}
@@ -514,19 +523,27 @@ const Dashboard = ({setCurrentPage,toReportPage}) => {
             <p className="text-black font-poppins font-semibold text-base mx-10 mt-3">
               Exercise Assigned Patients
             </p>
-            <div className="w-24 h-28 flex flex-col justify-center items-center border-red-400 border-2 rounded-lg ml-10 mt-3 gap-1">
-              <img
-                className="w-10 h-10 rounded-full"
-                src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
-                alt="tania andrew"
-              />
-              <p className="text-base text-black font-poppins font-medium">
-                Name
-              </p>
-              <p className="text-sm text-black opacity-50 font-poppins font-medium">
-                ID
-              </p>
-            </div>
+            <div className="flex overflow-x-auto w-full space-x-4 px-4 mt-6 ml-4">
+  {patients.map((patient) => (
+    <div
+      key={patient._id}
+      className="w-24 h-28 flex flex-col justify-center items-center border-red-400 border-2 rounded-lg gap-1"
+    >
+      <img
+        className="w-10 h-10 rounded-full"
+        src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
+        alt={patient.user_id}
+      />
+      <p className="text-base text-black font-poppins font-medium">
+        {patient.user_id}
+      </p>
+      <p className="text-sm text-black opacity-50 font-poppins font-medium">
+        {patient.unique_id}
+      </p>
+    </div>
+  ))}
+</div>
+
           </div>
         </div>
       </div>
