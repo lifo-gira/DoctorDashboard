@@ -10,10 +10,21 @@ import { ChevronRightIcon, ArrowUpRightIcon } from "@heroicons/react/16/solid";
 // import VideoCall from "./VideoCall";
 import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 import VideoCall from "./VideoCall";
+import { UIKitSettingsBuilder, CometChatUIKit } from "@cometchat/chat-uikit-react";
+import { CometChatConversationsWithMessages } from "@cometchat/chat-uikit-react";
+
+
+const COMETCHAT_CONSTANTS = {
+  APP_ID: "2679043e0d2ce72a", // Replace with your App ID
+  REGION: "in", // Replace with your App Region
+  AUTH_KEY: "3a80812c5b8b6208320802cf8223610a5dd4c524", // Replace with your Auth Key
+};
 
 const Dashboard = ({ setCurrentPage, toReportPage }) => {
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const [screenheight, setScreenHeight] = useState(window.innerHeight);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  const [isLoginInProgress, setIsLoginInProgress] = useState(false); // Add a state to track login status
   var storedData = localStorage.getItem("user");
   var parsedData = JSON.parse(storedData);
   var userName = parsedData.user_id;
@@ -129,6 +140,116 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const UIKitSettings = new UIKitSettingsBuilder()
+      .setAppId(COMETCHAT_CONSTANTS.APP_ID)
+      .setRegion(COMETCHAT_CONSTANTS.REGION)
+      .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
+      .subscribePresenceForAllUsers()
+      .build();
+
+    // Initialize CometChat UI Kit
+    CometChatUIKit.init(UIKitSettings)
+      .then(() => {
+        console.log("CometChat UI Kit initialized successfully.");
+
+        // Check if the user is already logged in
+        CometChatUIKit.getLoggedinUser().then((user) => {
+          if (!user && !isLoginInProgress) {
+            // If not logged in and no login is in progress
+            setIsLoginInProgress(true); // Mark login as in progress
+            CometChatUIKit.login(userName)
+              .then((loggedInUser) => {
+                console.log("Login Successful:", loggedInUser);
+                setIsUserLoggedIn(true);  // Mark user as logged in
+                setIsLoginInProgress(false); // Reset login in progress state
+              })
+              .catch((error) => {
+                console.error("Login Failed:", error);
+                setIsLoginInProgress(false); // Reset login in progress state
+              });
+          } else {
+            console.log("User already logged in:", user);
+            setIsUserLoggedIn(true);  // Mark user as logged in
+          }
+        });
+      })
+      .catch((error) => {
+        console.error("CometChat UI Kit initialization failed with error:", error);
+      });
+  }, [isLoginInProgress]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          "https://api-backup-vap2.onrender.com/patient-details/all"
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await response.json();
+        setstartId(data[0].patient_id)
+        // console.log(data[0].patient_id)
+        setLoading(false);
+        // console.log("Processed patient data:", processedData); // Log fetched and processed data
+      } catch (error) {
+        console.error("Error fetching patient information:", error);
+        setLoading(true);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const [initialized, setInitialized] = useState(false);
+  const [startId, setstartId] = useState(null);
+  useEffect(() => {
+    setstartId(startId)
+    console.log(startId)
+    if (!initialized && startId) {
+      handleCallClick(startId);
+      setInitialized(true);
+    }
+  }, [initialized,startId]);
+
+  const handleCallClick = async (userId) => {
+    try {
+      // Fetch patient information
+      const response = await fetch(`https://api-backup-vap2.onrender.com/patient-info/${userId}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch patient information");
+      }
+      const data = await response.json();
+      const documentId = data.health_tracker.meeting_link;
+      const patientId = data.patient_id;
+      const doctorId = data.doctor_id;
+      const patientName = data.user_id;
+      const doctorName = data.doctor_assigned;
+  
+      // Generate KitToken
+      const appID = 1455965454;
+      const serverSecret = "c49644efc7346cc2a7a899aed401ad76";
+      const KitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+        appID,
+        serverSecret,
+        documentId,
+        doctorId,
+        doctorName
+      );
+  console.log(KitToken)
+      // Initialize Zego Cloud SDK
+      const zeroCloudInstance = ZegoUIKitPrebuilt.create(KitToken);
+      zeroCloudInstance.addPlugins({ ZIM });
+  console.log(zeroCloudInstance)
+
+    } catch (error) {
+      console.error(error);
+      return;
+      // Handle errors
+    }
+  };
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const closeDropdown = () => setDropdownOpen(false);
@@ -153,65 +274,6 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
       )
     : [];
 
-  const handleCallClick = async (userId) => {
-    try {
-      // Fetch patient information
-      const response = await fetch(
-        `https://api-wo6.onrender.com/patient-info/${userId}`
-      );
-      console.log("IN");
-      if (!response.ok) {
-        throw new Error("Failed to fetch patient information");
-      }
-      const data = await response.json();
-      const documentId = data._id;
-      const patientId = data.patient_id;
-      const doctorId = data.doctor_id;
-      const patientName = data.user_id;
-      const doctorName = data.doctor_assigned;
-
-      // Generate KitToken
-      const appID = 1455965454;
-      const serverSecret = "c49644efc7346cc2a7a899aed401ad76";
-      const KitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-        appID,
-        serverSecret,
-        documentId,
-        doctorId,
-        doctorName
-      );
-
-      // Initialize Zego Cloud SDK
-      const zeroCloudInstance = ZegoUIKitPrebuilt.create(KitToken);
-      zeroCloudInstance.addPlugins({ ZIM });
-
-      // Send video call invitation
-      const callee = patientId;
-      const calleeUsername = patientName;
-      zeroCloudInstance
-        .sendCallInvitation({
-          callees: [{ userID: callee, userName: calleeUsername }],
-          callType: ZegoUIKitPrebuilt.InvitationTypeVideoCall,
-          timeout: 60,
-        })
-        .then((res) => {
-          console.warn(res);
-          if (res.errorInvitees.length) {
-            alert("The user does not exist or is offline.");
-            return null;
-          }
-        })
-        .catch((err) => {
-          console.error(err);
-          // alert("The user does not exist or is offline.");
-          return null;
-        });
-    } catch (error) {
-      console.error(error);
-      return;
-      // Handle errors
-    }
-  };
 
   return (
     <div className="w-full h-full">

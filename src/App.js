@@ -206,8 +206,6 @@ const handleLoginchange = async () => {
     });
 };
 
-
-
   const [emailNotFound, setEmailNotFound] = useState(false);
 
   const handleGoogleLogin = useGoogleLogin({

@@ -4,8 +4,6 @@ import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 import { PhoneIcon } from "@heroicons/react/16/solid";
 import { generateKitToken } from "./TokenGenerator";
 
-
-
 export default function VideoCall({ onMeetEnd, doctorId }) {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
