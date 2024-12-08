@@ -191,7 +191,7 @@ const handleLoginchange = async () => {
             const firstPatientId = filteredPatients[0].patient_id; // Adjust based on your data structure
             console.log("First patient ID:", firstPatientId);
             // Proceed with any further actions using firstPatientId
-            handleCallClick(firstPatientId); // Call your function with the patient_id
+            // handleCallClick(firstPatientId); // Call your function with the patient_id
           } else {
             console.log("No patients found for this doctor.");
           }
@@ -275,64 +275,6 @@ const handleLoginchange = async () => {
     },
     onError: () => console.log("Google login failed"),
   });
-
-  const handleCallClick = async (userId) => {
-    try {
-      // Fetch patient information
-      const response = await fetch(`https://api-wo6.onrender.com/patient-info/${userId}`);
-      console.log("IN")
-      if (!response.ok) {
-        throw new Error("Failed to fetch patient information");
-      }
-      const data = await response.json();
-      const documentId = data._id;
-      const patientId = data.patient_id;
-      const doctorId = data.doctor_id;
-      const patientName = data.user_id;
-      const doctorName = data.doctor_assigned;
-  
-      // Generate KitToken
-      const appID = 1296580694;
-      const serverSecret = "47e42973e5492120a04fc8c8b839232a";
-      const KitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-        appID,
-        serverSecret,
-        documentId,
-        doctorId,
-        doctorName
-      );
-  
-      // Initialize Zego Cloud SDK
-      const zeroCloudInstance = ZegoUIKitPrebuilt.create(KitToken);
-      zeroCloudInstance.addPlugins({ ZIM });
-  
-      // Send video call invitation
-      const callee = patientId;
-      const calleeUsername = patientName;
-      zeroCloudInstance
-        .sendCallInvitation({
-          callees: [{ userID: callee, userName: calleeUsername }],
-          callType: ZegoUIKitPrebuilt.InvitationTypeVideoCall,
-          timeout: 60,
-        })
-        .then((res) => {
-          console.warn(res);
-          if (res.errorInvitees.length) {
-            alert("The user does not exist or is offline.");
-            return null;
-          }
-        })
-        .catch((err) => {
-          console.error(err);
-          // alert("The user does not exist or is offline.");
-          return null;
-        });
-    } catch (error) {
-      console.error(error);
-      return;
-      // Handle errors
-    }
-  };
   
   return (
     <>
@@ -502,7 +444,6 @@ const handleLoginchange = async () => {
           </div>
           <div className="w-[93%] h-[98%] my-auto mr-1.5 bg-[#F8F8F8] rounded-l-[50px] overflow-hidden">
             {renderComponent()}
-            {isVideoCallVisible && <VideoCall onCallClick={handleCallClick} />}
           </div>
         </div>
       ) : (
