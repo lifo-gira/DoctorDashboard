@@ -109,7 +109,7 @@ const Chatting = ({ uname }) => {
      <h1>{isUserLoggedIn ? `Welcome ${uname}` : "Logging In..."}</h1>
       {/* Render the Conversations with Messages component only if the user is logged in */}
       {isUserLoggedIn && (
-        <div style={{ height: "920px", border: "1px solid #ccc" }}>
+        <div style={{ height: "800px", border: "1px solid #ccc" }}>
           <CometChatConversationsWithMessages />
         </div>
       )}
