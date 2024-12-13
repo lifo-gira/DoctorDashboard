@@ -213,6 +213,44 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
     return ((clampedValue - minBMI) / (maxBMI - minBMI)) * 100;
   };
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const toggleDropdown = () => {
+    if (notificationCount > 0) {
+      setIsDropdownOpen(!isDropdownOpen);
+    }
+  };
+
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    const socket = new WebSocket("wss://api-wo6.onrender.com/patients");
+
+    socket.onmessage = (event) => {
+        // Handle the WebSocket message
+        console.log("WebSocket message received:", event.data);
+
+        try {
+            const messageData = JSON.parse(event.data);
+            console.log(messageData, "HI");
+            // Check if the flag is 1 in the received message
+            if (messageData.flag === 3) {
+                // Increment the notification count when a new WebSocket message is received with flag 1
+                setNotificationCount((prevCount) => prevCount + 1);
+            }
+        } catch (error) {
+            console.error("Error parsing WebSocket message:", error);
+        }
+    };
+
+    // Return cleanup function to close socket when component unmounts
+    return () => {
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.close();
+        }
+    };
+}, []);
+
   return (
     <div className="w-full h-full">
       <div className="flex w-[95%] mx-auto mt-4">
@@ -261,22 +299,44 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
               />
             </svg>
           </button>
-          <button className="focus:outline-none w-8 h-8 rounded-full mr-7">
-            <svg
-              width="26"
-              height="27"
-              viewBox="0 0 26 27"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          <div className="relative">
+            {/* Notification Button */}
+            <button
+              className="focus:outline-none w-8 h-8 rounded-full mr-7 relative"
+              onClick={toggleDropdown}
             >
-              <path
-                d="M12.9632 23.8898C13.6238 23.8907 14.2682 23.6857 14.8069 23.3033C15.3456 22.921 15.7518 22.3804 15.9691 21.7565H9.95737C10.1746 22.3804 10.5808 22.921 11.1195 23.3033C11.6582 23.6857 12.3026 23.8907 12.9632 23.8898ZM20.4298 15.9816V11.0899C20.4298 7.65847 18.0992 4.76783 14.9419 3.8985C14.6293 3.1113 13.8656 2.55664 12.9632 2.55664C12.0608 2.55664 11.2971 3.1113 10.9846 3.8985C7.82725 4.76889 5.4966 7.65847 5.4966 11.0899V15.9816L3.67581 17.8024C3.57657 17.9013 3.49786 18.0188 3.44423 18.1483C3.39059 18.2777 3.36308 18.4164 3.36328 18.5565V19.6232C3.36328 19.9061 3.47566 20.1774 3.6757 20.3774C3.87574 20.5775 4.14705 20.6899 4.42994 20.6899H21.4965C21.7794 20.6899 22.0507 20.5775 22.2507 20.3774C22.4508 20.1774 22.5632 19.9061 22.5632 19.6232V18.5565C22.5634 18.4164 22.5359 18.2777 22.4822 18.1483C22.4286 18.0188 22.3499 17.9013 22.2506 17.8024L20.4298 15.9816Z"
-                fill="#0D0D0D"
-                fill-opacity="0.75"
-              />
-              <circle cx="19.0022" cy="5.63308" r="2.80496" fill="#F9A135" />
-            </svg>
-          </button>
+              <svg
+                width="26"
+                height="27"
+                viewBox="0 0 26 27"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12.9632 23.8898C13.6238 23.8907 14.2682 23.6857 14.8069 23.3033C15.3456 22.921 15.7518 22.3804 15.9691 21.7565H9.95737C10.1746 22.3804 10.5808 22.921 11.1195 23.3033C11.6582 23.6857 12.3026 23.8907 12.9632 23.8898ZM20.4298 15.9816V11.0899C20.4298 7.65847 18.0992 4.76783 14.9419 3.8985C14.6293 3.1113 13.8656 2.55664 12.9632 2.55664C12.0608 2.55664 11.2971 3.1113 10.9846 3.8985C7.82725 4.76889 5.4966 7.65847 5.4966 11.0899V15.9816L3.67581 17.8024C3.57657 17.9013 3.49786 18.0188 3.44423 18.1483C3.39059 18.2777 3.36308 18.4164 3.36328 18.5565V19.6232C3.36328 19.9061 3.47566 20.1774 3.6757 20.3774C3.87574 20.5775 4.14705 20.6899 4.42994 20.6899H21.4965C21.7794 20.6899 22.0507 20.5775 22.2507 20.3774C22.4508 20.1774 22.5632 19.9061 22.5632 19.6232V18.5565C22.5634 18.4164 22.5359 18.2777 22.4822 18.1483C22.4286 18.0188 22.3499 17.9013 22.2506 17.8024L20.4298 15.9816Z"
+                  fill="#0D0D0D"
+                  fillOpacity="0.75"
+                />
+                <circle cx="19.0022" cy="5.63308" r="2.80496" fill="#F9A135" />
+              </svg>
+              {/* Notification Badge */}
+              <div className="absolute top-[-5px] right-0 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                {notificationCount}
+              </div>
+            </button>
+
+            {/* Dropdown Content */}
+            {isDropdownOpen && (
+              <div className="absolute top-10 right-0 bg-white border rounded-md shadow-md w-64 p-4">
+                 <p 
+            className="text-sm text-gray-700"
+            onClick={() => {
+                window.location.reload()
+            }}
+          >You have a notification</p>
+              </div>
+            )}
+          </div>
           <div className="h-12 w-40 bg-white border-[#D9D9D9] border-[1.5px] rounded-2xl ">
             <div className="h-full flex flex-row gap-4 justify-center items-center">
               <img

@@ -10,9 +10,11 @@ import { ChevronRightIcon, ArrowUpRightIcon } from "@heroicons/react/16/solid";
 // import VideoCall from "./VideoCall";
 import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 import VideoCall from "./VideoCall";
-import { UIKitSettingsBuilder, CometChatUIKit } from "@cometchat/chat-uikit-react";
+import {
+  UIKitSettingsBuilder,
+  CometChatUIKit,
+} from "@cometchat/chat-uikit-react";
 import { CometChatConversationsWithMessages } from "@cometchat/chat-uikit-react";
-
 
 const COMETCHAT_CONSTANTS = {
   APP_ID: "2679043e0d2ce72a", // Replace with your App ID
@@ -80,10 +82,11 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
 
         // Count occurrences of flag == -1 and flag == 0
         const minusOneCount = filteredPatients.filter(
-          (patient) => patient.flag === -1
+          (patient) => patient.flag > 1
         ).length;
+
         const zeroCount = filteredPatients.filter(
-          (patient) => patient.flag === 0
+          (patient) => patient.flag === 1
         ).length;
 
         setFlagMinusOneCount(minusOneCount);
@@ -184,14 +187,17 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
           });
       })
       .catch((error) => {
-        console.error("CometChat UI Kit initialization failed with error:", error);
+        console.error(
+          "CometChat UI Kit initialization failed with error:",
+          error
+        );
       });
   }, [isLoginInProgress]);
 
   const loginUser = () => {
     if (!isLoginInProgress) {
       setIsLoginInProgress(true);
-      
+
       // Create user if not already created
       const options = {
         method: "POST",
@@ -201,14 +207,22 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
           apikey: COMETCHAT_CONSTANTS.AUTH_KEY, // Use the correct Auth Key
         },
         body: JSON.stringify({
-          metadata: { "@private": { email: "user@email.com", contactNumber: "0123456789" } },
+          metadata: {
+            "@private": {
+              email: "user@email.com",
+              contactNumber: "0123456789",
+            },
+          },
           uid: userName,
           name: userName,
         }),
       };
 
       // Fetch request to create the user if needed
-      fetch(`https://${COMETCHAT_CONSTANTS.APP_ID}.api-in.cometchat.io/v3/users`, options)
+      fetch(
+        `https://${COMETCHAT_CONSTANTS.APP_ID}.api-in.cometchat.io/v3/users`,
+        options
+      )
         .then((res) => res.json())
         .then((res) => {
           console.log("User creation response:", res);
@@ -234,13 +248,13 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          "https://api-backup-vap2.onrender.com/patient-details/all"
+          "https://api-wo6.onrender.com/patient-details/all"
         );
         if (!response.ok) {
           throw new Error("Failed to fetch data");
         }
         const data = await response.json();
-        setstartId(data[0].patient_id)
+        setstartId(data[0].patient_id);
         // console.log(data[0].patient_id)
         setLoading(false);
         // console.log("Processed patient data:", processedData); // Log fetched and processed data
@@ -256,28 +270,30 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
   const [initialized, setInitialized] = useState(false);
   const [startId, setstartId] = useState(null);
   useEffect(() => {
-    setstartId(startId)
-    console.log(startId)
+    setstartId(startId);
+    console.log(startId);
     if (!initialized && startId) {
       handleCallClick(startId);
       setInitialized(true);
     }
-  }, [initialized,startId]);
+  }, [initialized, startId]);
 
   const handleCallClick = async (userId) => {
     try {
       // Fetch patient information
-      const response = await fetch(`https://api-backup-vap2.onrender.com/patient-info/${userId}`);
+      const response = await fetch(
+        `https://api-wo6.onrender.com/patient-info/${userId}`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch patient information");
       }
       const data = await response.json();
-      const documentId = data.health_tracker.meeting_link;
+      const documentId = data._id;
       const patientId = data.patient_id;
       const doctorId = data.doctor_id;
       const patientName = data.user_id;
       const doctorName = data.doctor_assigned;
-  
+
       // Generate KitToken
       const appID = 1455965454;
       const serverSecret = "c49644efc7346cc2a7a899aed401ad76";
@@ -288,12 +304,11 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
         doctorId,
         doctorName
       );
-  console.log(KitToken)
+      console.log(KitToken);
       // Initialize Zego Cloud SDK
       const zeroCloudInstance = ZegoUIKitPrebuilt.create(KitToken);
       zeroCloudInstance.addPlugins({ ZIM });
-  console.log(zeroCloudInstance)
-
+      console.log(zeroCloudInstance);
     } catch (error) {
       console.error(error);
       return;
@@ -324,6 +339,44 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
         patient.user_id.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : [];
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const toggleDropdown = () => {
+    if (notificationCount > 0) {
+      setIsDropdownOpen(!isDropdownOpen);
+    }
+  };
+
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    const socket = new WebSocket("wss://api-wo6.onrender.com/patients");
+
+    socket.onmessage = (event) => {
+        // Handle the WebSocket message
+        console.log("WebSocket message received:", event.data);
+
+        try {
+            const messageData = JSON.parse(event.data);
+            console.log(messageData, "HI");
+            // Check if the flag is 1 in the received message
+            if (messageData.flag === 3) {
+                // Increment the notification count when a new WebSocket message is received with flag 1
+                setNotificationCount((prevCount) => prevCount + 1);
+            }
+        } catch (error) {
+            console.error("Error parsing WebSocket message:", error);
+        }
+    };
+
+    // Return cleanup function to close socket when component unmounts
+    return () => {
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.close();
+        }
+    };
+}, []);
 
 
   return (
@@ -406,22 +459,44 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
               />
             </svg>
           </button>
-          <button className="focus:outline-none w-8 h-8 rounded-full mr-7">
-            <svg
-              width="26"
-              height="27"
-              viewBox="0 0 26 27"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          <div className="relative">
+            {/* Notification Button */}
+            <button
+              className="focus:outline-none w-8 h-8 rounded-full mr-7 relative"
+              onClick={toggleDropdown}
             >
-              <path
-                d="M12.9632 23.8898C13.6238 23.8907 14.2682 23.6857 14.8069 23.3033C15.3456 22.921 15.7518 22.3804 15.9691 21.7565H9.95737C10.1746 22.3804 10.5808 22.921 11.1195 23.3033C11.6582 23.6857 12.3026 23.8907 12.9632 23.8898ZM20.4298 15.9816V11.0899C20.4298 7.65847 18.0992 4.76783 14.9419 3.8985C14.6293 3.1113 13.8656 2.55664 12.9632 2.55664C12.0608 2.55664 11.2971 3.1113 10.9846 3.8985C7.82725 4.76889 5.4966 7.65847 5.4966 11.0899V15.9816L3.67581 17.8024C3.57657 17.9013 3.49786 18.0188 3.44423 18.1483C3.39059 18.2777 3.36308 18.4164 3.36328 18.5565V19.6232C3.36328 19.9061 3.47566 20.1774 3.6757 20.3774C3.87574 20.5775 4.14705 20.6899 4.42994 20.6899H21.4965C21.7794 20.6899 22.0507 20.5775 22.2507 20.3774C22.4508 20.1774 22.5632 19.9061 22.5632 19.6232V18.5565C22.5634 18.4164 22.5359 18.2777 22.4822 18.1483C22.4286 18.0188 22.3499 17.9013 22.2506 17.8024L20.4298 15.9816Z"
-                fill="#0D0D0D"
-                fill-opacity="0.75"
-              />
-              <circle cx="19.0022" cy="5.63308" r="2.80496" fill="#F9A135" />
-            </svg>
-          </button>
+              <svg
+                width="26"
+                height="27"
+                viewBox="0 0 26 27"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12.9632 23.8898C13.6238 23.8907 14.2682 23.6857 14.8069 23.3033C15.3456 22.921 15.7518 22.3804 15.9691 21.7565H9.95737C10.1746 22.3804 10.5808 22.921 11.1195 23.3033C11.6582 23.6857 12.3026 23.8907 12.9632 23.8898ZM20.4298 15.9816V11.0899C20.4298 7.65847 18.0992 4.76783 14.9419 3.8985C14.6293 3.1113 13.8656 2.55664 12.9632 2.55664C12.0608 2.55664 11.2971 3.1113 10.9846 3.8985C7.82725 4.76889 5.4966 7.65847 5.4966 11.0899V15.9816L3.67581 17.8024C3.57657 17.9013 3.49786 18.0188 3.44423 18.1483C3.39059 18.2777 3.36308 18.4164 3.36328 18.5565V19.6232C3.36328 19.9061 3.47566 20.1774 3.6757 20.3774C3.87574 20.5775 4.14705 20.6899 4.42994 20.6899H21.4965C21.7794 20.6899 22.0507 20.5775 22.2507 20.3774C22.4508 20.1774 22.5632 19.9061 22.5632 19.6232V18.5565C22.5634 18.4164 22.5359 18.2777 22.4822 18.1483C22.4286 18.0188 22.3499 17.9013 22.2506 17.8024L20.4298 15.9816Z"
+                  fill="#0D0D0D"
+                  fillOpacity="0.75"
+                />
+                <circle cx="19.0022" cy="5.63308" r="2.80496" fill="#F9A135" />
+              </svg>
+              {/* Notification Badge */}
+              <div className="absolute top-[-5px] right-0 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                {notificationCount}
+              </div>
+            </button>
+
+            {/* Dropdown Content */}
+            {isDropdownOpen && (
+              <div className="absolute top-10 right-0 bg-white border rounded-md shadow-md w-64 p-4">
+                 <p 
+            className="text-sm text-gray-700"
+            onClick={() => {
+                window.location.reload()
+            }}
+          >You have a notification</p>
+              </div>
+            )}
+          </div>
           <div className="h-12 w-40 bg-white border-[#D9D9D9] border-[1.5px] rounded-2xl ">
             <div className="h-full flex flex-row gap-4 justify-center items-center">
               <img
@@ -637,26 +712,27 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
               Exercise Assigned Patients
             </p>
             <div className="flex overflow-x-auto w-full space-x-4 px-4 mt-6 ml-4">
-  {patients.map((patient) => (
-    <div
-      key={patient._id}
-      className="w-24 h-28 flex flex-col justify-center items-center border-red-400 border-2 rounded-lg gap-1"
-    >
-      <img
-        className="w-10 h-10 rounded-full"
-        src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
-        alt={patient.user_id}
-      />
-      <p className="text-base text-black font-poppins font-medium">
-        {patient.user_id}
-      </p>
-      <p className="text-sm text-black opacity-50 font-poppins font-medium">
-        {patient.unique_id}
-      </p>
-    </div>
-  ))}
-</div>
-
+              {patients
+                .filter((patient) => patient.flag > 1) // Filter patients with flag > 1
+                .map((patient) => (
+                  <div
+                    key={patient._id}
+                    className="w-24 h-28 flex flex-col justify-center items-center border-red-400 border-2 rounded-lg gap-1"
+                  >
+                    <img
+                      className="w-10 h-10 rounded-full"
+                      src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
+                      alt={patient.user_id}
+                    />
+                    <p className="text-base text-black font-poppins font-medium">
+                      {patient.user_id}
+                    </p>
+                    <p className="text-sm text-black opacity-50 font-poppins font-medium">
+                      {patient.unique_id}
+                    </p>
+                  </div>
+                ))}
+            </div>
           </div>
         </div>
       </div>
