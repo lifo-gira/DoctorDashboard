@@ -818,9 +818,10 @@ const Detailreport = (assessment, index, reportData, selected) => {
 
   // Calculate the stroke offset
   const offset = Math.round(circumference - (value / 2 / 100) * circumference); // Correctly calculate the offset
-
+  var LegData;
   function processProprioceptionData(exercises) {
     // Extract Proprioception Test data
+    console.log(exercises)
     const proprioceptionData = exercises["Proprioception Test"];
 
     // Map leftleg and rightleg values
@@ -843,6 +844,51 @@ const Detailreport = (assessment, index, reportData, selected) => {
     return { leftlegData, rightlegData };
   }
 
+  const data = [
+    {
+      name: "1",
+      uv: 10,
+      pv: 24,
+      amt: 2400,
+    },
+    {
+      name: "2",
+      uv: 30,
+      pv: 55,
+      amt: 2210,
+    },
+    {
+      name: "3",
+      uv: 50,
+      pv: 90,
+      amt: 2290,
+    },
+    {
+      name: "4",
+      uv: 70,
+      pv: 70,
+      amt: 2000,
+    },
+    {
+      name: "5",
+      uv: 40,
+      pv: 50,
+      amt: 2181,
+    },
+    {
+      name: "6",
+      uv: 10,
+      pv: 43,
+      amt: 2500,
+    },
+    {
+      name: "7",
+      uv: 1,
+      pv: 23,
+      amt: 2100,
+    },
+  ];
+
   // Function to process overall reportData
   function processData(assessment) {
     // console.log(assessment)
@@ -856,9 +902,12 @@ const Detailreport = (assessment, index, reportData, selected) => {
   }
 
   // Example usage
-  const LegData = processData(assessment);
+  if(assessment.selected === "assessment"){
+  LegData = processData(assessment);
   console.log(chartData);
+  }else{
 
+  }
   useEffect(() => {
     if (assessment.selected === "model_recovery") {
       // Auto-select the first exercise when model_recovery is selected
@@ -1853,7 +1902,7 @@ const Detailreport = (assessment, index, reportData, selected) => {
                 <LineChart
                   width={200}
                   height={200}
-                  data={LegData.leftlegData}
+                  data={data}
                   margin={{
                     top: 20,
                     right: 30,
@@ -1881,7 +1930,7 @@ const Detailreport = (assessment, index, reportData, selected) => {
                   />
                   <Line
                     type="natural"
-                    dataKey="value" // For left leg
+                    dataKey="uv" // For left leg
                     stroke="#8884d8"
                     strokeDasharray="12 7"
                     strokeWidth="2px"
@@ -1897,7 +1946,7 @@ const Detailreport = (assessment, index, reportData, selected) => {
                 <LineChart
                   width={200}
                   height={200}
-                  data={LegData.rightlegData}
+                  data={data}
                   margin={{
                     top: 20,
                     right: 30,
@@ -1925,7 +1974,7 @@ const Detailreport = (assessment, index, reportData, selected) => {
                   />
                   <Line
                     type="natural"
-                    dataKey="value" // For right leg
+                    dataKey="pv" // For right leg
                     stroke="#82ca9d"
                     strokeDasharray="12 7"
                     strokeWidth="2px"
