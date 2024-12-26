@@ -68,7 +68,7 @@ const Detailreport = (assessment, index, reportData, selected) => {
         ? assessment.assessment.Exercise
         : {};
 
-    // console.log(assessment.assessment.exercises);
+    console.log(assessment.assessment.exercises);
 
     let totalExercises, definedExercisesCount;
 
@@ -819,50 +819,45 @@ const Detailreport = (assessment, index, reportData, selected) => {
   // Calculate the stroke offset
   const offset = Math.round(circumference - (value / 2 / 100) * circumference); // Correctly calculate the offset
 
-  const data = [
-    {
-      name: "Page A",
-      uv: 4000,
-      pv: 2400,
-      amt: 2400,
-    },
-    {
-      name: "Page B",
-      uv: 3000,
-      pv: 1398,
-      amt: 2210,
-    },
-    {
-      name: "Page C",
-      uv: 2000,
-      pv: 9800,
-      amt: 2290,
-    },
-    {
-      name: "Page D",
-      uv: 2780,
-      pv: 3908,
-      amt: 2000,
-    },
-    {
-      name: "Page E",
-      uv: 1890,
-      pv: 4800,
-      amt: 2181,
-    },
-    {
-      name: "Page F",
-      uv: 2390,
-      pv: 3800,
-      amt: 2500,
-    },
-    {
-      name: "Page G",
-      uv: 3490,
-      pv: 4300,
-      amt: 2100,
-    },
-  ];
+  function processProprioceptionData(exercises) {
+    // Extract Proprioception Test data
+    const proprioceptionData = exercises["Proprioception Test"];
+
+    // Map leftleg and rightleg values
+    const leftleg = proprioceptionData.leftleg.map((arr) => arr[0]); // Extract first values
+    const rightleg = proprioceptionData.rightleg.map((arr) => arr[0]); // Extract first values
+
+    // Prepare data for left leg (for chart 1)
+    const leftlegData = leftleg.map((value, index) => ({
+      name: `Point ${index + 1}`,
+      value, // Value for left leg
+    }));
+
+    // Prepare data for right leg (for chart 2)
+    const rightlegData = rightleg.map((value, index) => ({
+      name: `Point ${index + 1}`,
+      value, // Value for right leg
+    }));
+
+    // Return separate data for left leg and right leg to be used individually in separate charts
+    return { leftlegData, rightlegData };
+  }
+
+  // Function to process overall reportData
+  function processData(assessment) {
+    // console.log(assessment)
+    const exercises = assessment.assessment.exercises;
+
+    // Process Proprioception Test Data
+    const { leftlegData, rightlegData } = processProprioceptionData(exercises);
+
+    // Return the processed data for both left leg and right leg separately
+    return { leftlegData, rightlegData };
+  }
+
+  // Example usage
+  const LegData = processData(assessment);
+  console.log(chartData);
 
   useEffect(() => {
     if (assessment.selected === "model_recovery") {
@@ -1858,7 +1853,7 @@ const Detailreport = (assessment, index, reportData, selected) => {
                 <LineChart
                   width={200}
                   height={200}
-                  data={data}
+                  data={LegData.leftlegData}
                   margin={{
                     top: 20,
                     right: 30,
@@ -1886,10 +1881,10 @@ const Detailreport = (assessment, index, reportData, selected) => {
                   />
                   <Line
                     type="natural"
-                    dataKey="pv"
-                    stroke="#4880FF"
-                    strokeWidth="4px"
-                    dot={false}
+                    dataKey="value" // For left leg
+                    stroke="#8884d8"
+                    strokeDasharray="12 7"
+                    strokeWidth="2px"
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -1902,7 +1897,7 @@ const Detailreport = (assessment, index, reportData, selected) => {
                 <LineChart
                   width={200}
                   height={200}
-                  data={data}
+                  data={LegData.rightlegData}
                   margin={{
                     top: 20,
                     right: 30,
@@ -1930,10 +1925,10 @@ const Detailreport = (assessment, index, reportData, selected) => {
                   />
                   <Line
                     type="natural"
-                    dataKey="pv"
-                    stroke="#FF9D48"
-                    strokeWidth="4px"
-                    dot={false}
+                    dataKey="value" // For right leg
+                    stroke="#82ca9d"
+                    strokeDasharray="12 7"
+                    strokeWidth="2px"
                   />
                 </LineChart>
               </ResponsiveContainer>

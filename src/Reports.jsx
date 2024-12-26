@@ -106,51 +106,6 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
     setSelectedIndex(index); // Update selected index
   };
 
-  const data = [
-    {
-      name: "Page A",
-      uv: 4000,
-      pv: 2400,
-      amt: 2400,
-    },
-    {
-      name: "Page B",
-      uv: 3000,
-      pv: 1398,
-      amt: 2210,
-    },
-    {
-      name: "Page C",
-      uv: 2000,
-      pv: 9800,
-      amt: 2290,
-    },
-    {
-      name: "Page D",
-      uv: 2780,
-      pv: 3908,
-      amt: 2000,
-    },
-    {
-      name: "Page E",
-      uv: 1890,
-      pv: 4800,
-      amt: 2181,
-    },
-    {
-      name: "Page F",
-      uv: 2390,
-      pv: 3800,
-      amt: 2500,
-    },
-    {
-      name: "Page G",
-      uv: 3490,
-      pv: 4300,
-      amt: 2100,
-    },
-  ];
-
   const handleReportClick = (assessment) => {
     // Handle the report click logic here
     console.log("Clicked report for assessment:", assessment);
@@ -197,9 +152,29 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
     return averageROM.toFixed(2); // Format to 2 decimal places
   };
 
-  // Get the average ROM
-  const averageROM = calculateAverageROM(data);
-  console.log("Average ROM:", averageROM);
+  function processData(reportData) {
+    // Access the last assessment from the array
+    const assessments = reportData.Assessment;
+    const lastAssessment = assessments[assessments.length - 1]; // Get the last assessment
+
+    // Extract Mobility Test data
+    const mobilityTestData = lastAssessment.exercises["Mobility Test"];
+
+    // Map leftleg and rightleg values
+    const leftleg = mobilityTestData.leftleg.map((arr) => arr[0]); // Extract first values
+    const rightleg = mobilityTestData.rightleg.map((arr) => arr[0]); // Extract first values
+
+    // Create chart data with leftleg and rightleg
+    return leftleg.map((value, index) => ({
+      name: `Point ${index + 1}`,
+      leftleg: value,
+      rightleg: rightleg[index] || 0, // Default to 0 if rightleg has fewer values
+    }));
+  }
+
+  // Example usage after fetching data
+  const chartData = processData(reportData);
+  console.log(chartData);
 
   const [bmiValue, setBmiValue] = useState(40);
   // Minimum and maximum BMI values for the range
@@ -227,29 +202,29 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
     const socket = new WebSocket("wss://api-wo6.onrender.com/patients");
 
     socket.onmessage = (event) => {
-        // Handle the WebSocket message
-        console.log("WebSocket message received:", event.data);
+      // Handle the WebSocket message
+      console.log("WebSocket message received:", event.data);
 
-        try {
-            const messageData = JSON.parse(event.data);
-            console.log(messageData, "HI");
-            // Check if the flag is 1 in the received message
-            if (messageData.flag === 3) {
-                // Increment the notification count when a new WebSocket message is received with flag 1
-                setNotificationCount((prevCount) => prevCount + 1);
-            }
-        } catch (error) {
-            console.error("Error parsing WebSocket message:", error);
+      try {
+        const messageData = JSON.parse(event.data);
+        console.log(messageData, "HI");
+        // Check if the flag is 1 in the received message
+        if (messageData.flag === 3) {
+          // Increment the notification count when a new WebSocket message is received with flag 1
+          setNotificationCount((prevCount) => prevCount + 1);
         }
+      } catch (error) {
+        console.error("Error parsing WebSocket message:", error);
+      }
     };
 
     // Return cleanup function to close socket when component unmounts
     return () => {
-        if (socket.readyState === WebSocket.OPEN) {
-            socket.close();
-        }
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
     };
-}, []);
+  }, []);
 
   return (
     <div className="w-full h-full">
@@ -328,12 +303,14 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
             {/* Dropdown Content */}
             {isDropdownOpen && (
               <div className="absolute top-10 right-0 bg-white border rounded-md shadow-md w-64 p-4">
-                 <p 
-            className="text-sm text-gray-700"
-            onClick={() => {
-                window.location.reload()
-            }}
-          >You have a notification</p>
+                <p
+                  className="text-sm text-gray-700"
+                  onClick={() => {
+                    window.location.reload();
+                  }}
+                >
+                  You have a notification
+                </p>
               </div>
             )}
           </div>
@@ -446,7 +423,7 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
                 <LineChart
                   width={200}
                   height={200}
-                  data={data}
+                  data={chartData}
                   margin={{
                     top: 20,
                     right: 30,
@@ -474,14 +451,15 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
                   />
                   <Line
                     type="natural"
-                    dataKey="pv"
+                    dataKey="leftleg" // DataKey for leftleg
                     stroke="#8884d8"
                     strokeDasharray="12 7"
                     strokeWidth="2px"
                   />
+                  {/* Line for rightleg */}
                   <Line
                     type="natural"
-                    dataKey="uv"
+                    dataKey="rightleg" // DataKey for rightleg
                     stroke="#82ca9d"
                     strokeDasharray="12 7"
                     strokeWidth="2px"
