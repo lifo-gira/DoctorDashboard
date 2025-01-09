@@ -491,90 +491,102 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
                 </div>
               )}
               <div className="overflow-y-scroll">
-                {(isToggled
-                  ? reportData.Model_Recovery
-                  : reportData.Assessment
-                ).map((item, index) => (
-                  <div
-                    key={index}
-                    className={`w-full rounded-lg flex flex-row justify-between items-center my-1 py-2 px-3 mt-2 cursor-pointer ${
-                      selectedIndex === index ? "bg-[#F0ECFF]" : ""
-                    }`}
-                    onClick={() => handleAssessmentClick(item, index)} // Pass index here
-                  >
-                    <div className="w-3/6">
-                      <div className="flex flex-row gap-4 py-0 px-2 items-center">
-                        <svg
-                          width="50"
-                          height="50"
-                          viewBox="0 0 40 40"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <circle cx="20" cy="20" r="20" fill="#F6F6F6" />
-                          <path
+                {Array.isArray(
+                  isToggled
+                    ? reportData?.Model_Recovery
+                    : reportData?.Assessment
+                ) &&
+                (isToggled ? reportData.Model_Recovery : reportData.Assessment)
+                  .length > 0 ? (
+                  (isToggled
+                    ? reportData.Model_Recovery
+                    : reportData.Assessment
+                  ).map((item, index) => (
+                    <div
+                      key={index}
+                      className={`w-full rounded-lg flex flex-row justify-between items-center my-1 py-2 px-3 mt-2 cursor-pointer ${
+                        selectedIndex === index ? "bg-[#F0ECFF]" : ""
+                      }`}
+                      onClick={() => handleAssessmentClick(item, index)} // Pass index here
+                    >
+                      <div className="w-3/6">
+                        <div className="flex flex-row gap-4 py-0 px-2 items-center">
+                          <svg
+                            width="50"
+                            height="50"
+                            viewBox="0 0 40 40"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle cx="20" cy="20" r="20" fill="#F6F6F6" />
+                            <path
                             d="M31.1534 11.9982H29.6546C29.488 11.9982 29.3519 12.1342 29.3519 12.3009V13.3715H27.5516C27.385 13.3715 27.2489 13.5064 27.2489 13.6741V15.5157H24.7724V14.6857C24.7724 14.1878 24.3684 13.7838 23.8697 13.7838H23.2242C22.7265 13.7838 22.3235 14.1868 22.3225 14.6835C22.3215 14.1868 21.9174 13.7838 21.4207 13.7838H20.7752C20.2763 13.7838 19.8724 14.1868 19.8724 14.6857C19.8724 14.1868 19.4696 13.7838 18.9707 13.7838H18.3252C17.8275 13.7838 17.4233 14.1868 17.4233 14.6857C17.4233 14.1868 17.0194 13.7838 16.5217 13.7838H15.8761C15.3771 13.7838 14.9733 14.1868 14.9733 14.6857V15.5157H12.9557V13.6741C12.9557 13.5064 12.8206 13.3715 12.653 13.3715L10.8528 13.3713V12.3007C10.8528 12.134 10.7179 11.998 10.5503 11.998L9.05268 11.9982C8.8851 11.9982 8.75 12.1342 8.75 12.3009V20.8342C8.75 21.0008 8.8851 21.137 9.05268 21.137H10.5503C10.7179 21.137 10.8528 21.0009 10.8528 20.8342V19.7636H12.6532C12.8208 19.7636 12.9559 19.6287 12.9559 19.4609V17.6182H14.9735V18.0297C14.9735 18.0353 14.9742 18.0408 14.9745 18.0463V18.0296C14.9745 18.5274 15.3784 18.9314 15.8762 18.9314H16.5217C16.8349 18.9314 17.1101 18.7722 17.2727 18.5296C17.3443 18.422 17.5025 18.422 17.5743 18.5296C17.7367 18.7722 18.0121 18.9314 18.3253 18.9314H18.9708C19.0731 18.9314 19.1712 18.9145 19.262 18.8829C19.223 18.7478 19.2019 18.6045 19.2019 18.4568V17.9167C19.2019 17.7352 19.2335 17.5603 19.2914 17.3987C19.5045 16.806 20.0719 16.3821 20.7364 16.3821H23.8698C24.117 16.3821 24.3512 16.4408 24.559 16.5456C24.6909 16.6122 24.7724 16.7495 24.7724 16.8973V17.9167C24.7724 17.7237 24.7123 17.5454 24.6091 17.3987C24.4455 17.1667 24.1756 17.0149 23.8698 17.0149H21.5463V17.3138C21.5463 17.574 21.3353 17.7849 21.0752 17.7849H19.8442C19.8378 17.8281 19.8343 17.8722 19.8343 17.9169V18.4569C19.8343 18.7005 19.9314 18.921 20.0873 19.0824C20.2508 19.2533 20.4817 19.3588 20.736 19.3588H21.5196C21.523 19.3588 21.5262 19.3598 21.5295 19.3598C21.5356 19.3601 21.5411 19.361 21.5469 19.3615C21.7087 19.3755 21.8362 19.5098 21.8362 19.675C21.8362 19.828 21.7277 19.9556 21.5834 19.9851C21.37 20.0629 19.9435 20.6204 19.537 21.7539C19.4906 21.8832 19.3689 21.9635 19.2392 21.9635C19.2037 21.9635 19.1677 21.9575 19.1324 21.9449C18.968 21.886 18.8824 21.7049 18.9414 21.5403C19.2055 20.8037 19.7794 20.2775 20.3079 19.9283C20.0148 19.8426 19.7568 19.6739 19.5645 19.4463C19.3821 19.5222 19.1806 19.5645 18.9708 19.5645H18.3253C17.989 19.5645 17.6766 19.4559 17.4236 19.2712C17.1705 19.4559 16.8583 19.5645 16.5219 19.5645H15.8764C15.5389 19.5645 15.2277 19.4559 14.9748 19.2702C14.9758 19.7765 15.1509 20.2658 15.4693 20.6572L16.7096 22.178L16.3467 27.9988C16.3209 28.4132 16.6498 28.7636 17.0652 28.7636L22.6358 28.7632C23.0511 28.7632 23.3801 28.4128 23.3543 27.9985L22.9912 22.1738L22.9914 22.1736L24.258 20.6634C24.4562 20.4272 24.6009 20.154 24.6853 19.8618C24.7432 19.6645 24.7728 19.4579 24.7728 19.2489V18.0337C24.7728 18.0324 24.773 18.0312 24.773 18.0299V17.6184H27.2495V19.4611C27.2495 19.6288 27.3856 19.7637 27.5522 19.7637H29.3525V20.8343C29.3525 21.0009 29.4886 21.1372 29.6552 21.1372H31.1538C31.3206 21.1372 31.4557 21.0011 31.4557 20.8343L31.4554 12.301C31.4554 12.1343 31.3204 11.9983 31.1537 11.9983L31.1534 11.9982Z"
                             fill="#252727"
                           />
-                        </svg>
-                        <div className="flex w-full flex-col">
-                          <div className="flex items-center justify-between">
-                            <p className="text-[#475467] font-poppins font-medium text-base">
-                              <b>
-                                {isToggled
-                                  ? reportData.Model_Recovery[index].Title
-                                  : `Assessment ${index + 1}`}
-                              </b>
+                          </svg>
+                          <div className="flex w-full flex-col">
+                            <div className="flex items-center justify-between">
+                              <p className="text-[#475467] font-poppins font-medium text-base">
+                                <b>
+                                  {isToggled
+                                    ? reportData.Model_Recovery[index].Title
+                                    : `Assessment ${index + 1}`}
+                                </b>
+                              </p>
+                            </div>
+                            <p className="text-start font-poppins font-medium text-sm text-[#475467]">
+                              {index + 1}, {new Date().getDate()}/
+                              {new Date().getMonth() + 1}/
+                              {new Date().getFullYear()} {/* Today's date */}
                             </p>
                           </div>
-                          <p className="text-start font-poppins font-medium text-sm text-[#475467]">
-                            {index + 1}, {new Date().getDate()}/
-                            {new Date().getMonth() + 1}/
-                            {new Date().getFullYear()} {/* Today's date */}
-                          </p>
+                        </div>
+                      </div>
+
+                      <div className="w-1/6 text-sm font-normal font-poppins text-[#475467] text-center">
+                        ID: {reportData?.unique_id || "N/A"}
+                      </div>
+
+                      <div className="w-1/6">
+                        <div className="bg-[#BAE5F6] text-[#0D3CB7] rounded-lg px-2 py-1 text-sm text-center">
+                          <div>
+                            <span>Moderate</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="w-1/6 flex flex-row justify-end items-center">
+                        <div
+                          className="flex flex-row gap-1 items-center"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent click event from bubbling up
+                            toReportPage(item); // Send data to the report page
+                            setCurrentPage("detailreports", {
+                              assessment: item,
+                              index,
+                              reportData, // Pass the entire reportData
+                              selected: isToggled
+                                ? "model_recovery"
+                                : "assessment", // Add this line
+                            });
+                          }}
+                        >
+                          <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
+                            Report
+                          </div>
+                          <ArrowUpRightIcon
+                            color="blue"
+                            className="w-4 h-4 cursor-pointer"
+                          />
                         </div>
                       </div>
                     </div>
-
-                    <div className="w-1/6 text-sm font-normal font-poppins text-[#475467] text-center">
-                      ID: {reportData.unique_id}
-                    </div>
-
-                    <div className="w-1/6">
-                      <div className="bg-[#BAE5F6] text-[#0D3CB7] rounded-lg px-2 py-1 text-sm text-center">
-                        <div>
-                          <span>Moderate</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="w-1/6 flex flex-row justify-end items-center">
-                      <div
-                        className="flex flex-row gap-1 items-center"
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent click event from bubbling up
-                          toReportPage(item); // Send data to the report page
-                          setCurrentPage("detailreports", {
-                            assessment: item,
-                            index,
-                            reportData, // Pass the entire reportData
-                            selected: isToggled
-                              ? "model_recovery"
-                              : "assessment", // Add this line
-                          });
-                        }}
-                      >
-                        <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
-                          Report
-                        </div>
-                        <ArrowUpRightIcon
-                          color="blue"
-                          className="w-4 h-4 cursor-pointer"
-                        />
-                      </div>
-                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-[#475467] font-poppins font-medium text-base">
+                    No assessment/exercise performed
                   </div>
-                ))}
+                )}
               </div>
             </div>
             {selectedAssessment && (
@@ -888,8 +900,11 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
                         {/* BMI Value and Health Label */}
                         <div className="flex flex-row w-full justify-between">
                           <p className="font-poppins font-normal text-lg text-white">
-                            {reportData.PersonalDetails.BMI}
+                            {parseFloat(reportData.PersonalDetails.BMI).toFixed(
+                              2
+                            )}
                           </p>
+
                           <p
                             className={`${
                               reportData.PersonalDetails.BMI < 18.5

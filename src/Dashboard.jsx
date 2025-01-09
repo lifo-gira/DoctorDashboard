@@ -560,7 +560,7 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
               </div>
             </div>
           </div>
-          <div className="w-full h-[60%] mt-20  rounded-xl pt-4 px-4">
+          <div className="w-full h-[60%] mt-20  rounded-xl pt-4 px-4 ">
             <div className="flex flex-row justify-between">
               <p className="text-black text-lg font-poppins font-semibold">
                 Patients Assigned
@@ -574,12 +574,13 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
                 <ChevronRightIcon className="w-4 h-4 text-cyan-300" />
               </div>
             </div>
+            <div className="max-h-[60vh] overflow-y-scroll">
             {patients.map((patient) => (
               <div
                 key={patient._id}
-                className="w-full bg-[#F3F0FF] rounded-lg flex flex-row justify-between items-center my-1 py-2 px-3 mt-6"
+                className="w-full bg-[#F3F0FF] rounded-lg flex flex-row justify-between items-center my-1 py-2 px-3 mt-6 "
               >
-                <div className="w-3/6">
+                <div className="w-3/6 ">
                   <div className="flex flex-row gap-4 py-0 px-2 items-center">
                     <img
                       className="w-10 h-10 rounded-full"
@@ -641,6 +642,7 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
                 </div>
               </div>
             ))}
+            </div>
           </div>
         </div>
         <div className="w-[45%] bg-slate-300">

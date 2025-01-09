@@ -810,39 +810,51 @@ const Detailreport = (assessment, index, reportData, selected) => {
   };
 
   // Clamp the progress between 0 and 100
-  const value = Math.min(Math.max(progress, 0), 100);
+  const value = parseFloat(Math.min(Math.max(progress, 0), 100).toFixed(2));
 
   // Circle properties
   const radius = 50; // Radius of the circle
-  const circumference = 2 * Math.PI * radius; // Calculate circumference
+  const circumference = parseFloat((2 * Math.PI * radius).toFixed(2)); // Calculate circumference
 
   // Calculate the stroke offset
-  const offset = Math.round(circumference - (value / 2 / 100) * circumference); // Correctly calculate the offset
+  const offset = parseFloat(
+    (circumference - (value / 2 / 100) * circumference).toFixed(2)
+  ); // Correctly calculate the offset
   var LegData;
   function processProprioceptionData(exercises) {
-    // Extract Proprioception Test data
-    console.log(exercises)
-    const proprioceptionData = exercises["Proprioception Test"];
-
-    // Map leftleg and rightleg values
-    const leftleg = proprioceptionData.leftleg.map((arr) => arr[0]); // Extract first values
-    const rightleg = proprioceptionData.rightleg.map((arr) => arr[0]); // Extract first values
-
-    // Prepare data for left leg (for chart 1)
-    const leftlegData = leftleg.map((value, index) => ({
-      name: `Point ${index + 1}`,
-      value, // Value for left leg
-    }));
-
-    // Prepare data for right leg (for chart 2)
-    const rightlegData = rightleg.map((value, index) => ({
-      name: `Point ${index + 1}`,
-      value, // Value for right leg
-    }));
-
-    // Return separate data for left leg and right leg to be used individually in separate charts
-    return { leftlegData, rightlegData };
+    // Check if "Proprioception Test" exists and contains the required properties
+    if (
+      exercises["Proprioception Test"] &&
+      Array.isArray(exercises["Proprioception Test"].leftleg) &&
+      Array.isArray(exercises["Proprioception Test"].rightleg)
+    ) {
+      // Extract Proprioception Test data
+      const proprioceptionData = exercises["Proprioception Test"];
+  
+      // Map leftleg and rightleg values
+      const leftleg = proprioceptionData.leftleg.map((arr) => arr[0]); // Extract first values
+      const rightleg = proprioceptionData.rightleg.map((arr) => arr[0]); // Extract first values
+  
+      // Prepare data for left leg (for chart 1)
+      const leftlegData = leftleg.map((value, index) => ({
+        name: `Point ${index + 1}`,
+        value, // Value for left leg
+      }));
+  
+      // Prepare data for right leg (for chart 2)
+      const rightlegData = rightleg.map((value, index) => ({
+        name: `Point ${index + 1}`,
+        value, // Value for right leg
+      }));
+  
+      // Return separate data for left leg and right leg to be used individually in separate charts
+      return { leftlegData, rightlegData };
+    } else {
+      // Return empty data if the exercise is not available
+      return { leftlegData: [], rightlegData: [] };
+    }
   }
+  
 
   const data = [
     {
