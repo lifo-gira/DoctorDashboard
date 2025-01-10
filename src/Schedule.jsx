@@ -379,7 +379,13 @@ const Schedule = ({setCurrentPage,toReportPage}) => {
     <p className="text-black text-lg font-poppins font-semibold">
       Patients Assigned
     </p>
-    {patients.map((patient) => (
+    <div className="h-[80%] overflow-y-scroll pb-4">
+  {patients.length === 0 ? (
+    <div className="w-full flex justify-center items-center py-4">
+      <p className="text-gray-500">No patients assigned</p>
+    </div>
+  ) : (
+    patients.map((patient) => (
       <div
         key={patient._id} // Change to patient._id for consistency
         className={`w-full rounded-lg flex flex-row justify-between items-center my-1 py-2 px-3 mt-6 cursor-pointer ${
@@ -401,8 +407,7 @@ const Schedule = ({setCurrentPage,toReportPage}) => {
                 </p>
               </div>
               <p className="text-start font-poppins font-medium text-sm text-[#475467]">
-                {patient.PersonalDetails.Age},{" "}
-                {patient.PersonalDetails.Gender}
+                {patient.PersonalDetails.Age}, {patient.PersonalDetails.Gender}
               </p>
             </div>
           </div>
@@ -428,22 +433,25 @@ const Schedule = ({setCurrentPage,toReportPage}) => {
         </div>
 
         <div className="w-1/6 flex flex-row justify-end items-center">
-          <div className="flex flex-row gap-1 items-center" onClick={() => {
-          setCurrentPage("reports"); // Set the current page to reports
-          toReportPage(patient); // Pass the mapped patient data here
-          console.log(patient); // For debugging, you can remove this later
-        }}>
+          <div
+            className="flex flex-row gap-1 items-center"
+            onClick={() => {
+              setCurrentPage("reports"); // Set the current page to reports
+              toReportPage(patient); // Pass the mapped patient data here
+              console.log(patient); // For debugging, you can remove this later
+            }}
+          >
             <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
               Report
             </div>
-            <ArrowUpRightIcon
-              color="blue"
-              className="w-4 h-4 cursor-pointer"
-            />
+            <ArrowUpRightIcon color="blue" className="w-4 h-4 cursor-pointer" />
           </div>
         </div>
       </div>
-    ))}
+    ))
+  )}
+</div>
+
   </div>
   <div className="w-[30%] h-full mx-auto">
     {selectedPatient ? (

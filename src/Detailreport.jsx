@@ -148,8 +148,8 @@ const Detailreport = (assessment, index, reportData, selected) => {
     console.log(exerciseName);
     if (exerciseName === "Walk and Gait Analysis") {
       // Extract the first array from leftLegData and rightLegData
-      const leftLegData = selectionData.leftLegData[0] || []; // First array of left leg data
-      const rightLegData = selectionData.rightLegData[0] || []; // First array of right leg data
+      const leftLegData = selectionData.leftLegData[0] ?? []; // First array of left leg data
+      const rightLegData = selectionData.rightLegData[0] ?? []; // First array of right leg data
 
       console.log("Left Leg Data (first array):", leftLegData);
       console.log("Right Leg Data (first array):", rightLegData);
@@ -162,8 +162,8 @@ const Detailreport = (assessment, index, reportData, selected) => {
       for (let i = 0; i < maxLength; i++) {
         selectedExerciseData.push({
           name: `Point ${i + 1}`, // Dynamic point names
-          value1: leftLegData[i] || 0, // Left leg proprioception data (default to 0 if missing)
-          value2: rightLegData[i] || 0, // Right leg proprioception data (default to 0 if missing)
+          value1: leftLegData[i] ?? 0, // Left leg proprioception data (default to 0 if missing)
+          value2: rightLegData[i] ?? 0, // Right leg proprioception data (default to 0 if missing)
         });
       }
 
@@ -177,16 +177,15 @@ const Detailreport = (assessment, index, reportData, selected) => {
           const cycleData = selectionData[cycleKey]; // Dynamic cycle data
           const leftLegData = cycleData.leftLegData[0]; // Extract the first dataset for left leg
           const rightLegData = cycleData.rightLegData[0]; // Extract the first dataset for right leg
-
           console.log(`${cycleKey} Left Leg Data:`, leftLegData);
           console.log(`${cycleKey} Right Leg Data:`, rightLegData);
-
           // Map the data to create a single object with both left and right leg data
           return leftLegData.map((value, index) => ({
             name: `${cycleKey} Point ${index + 1}`, // Dynamic point names
             value1: value, // Left leg proprioception data
-            value2: rightLegData[index] || 0, // Right leg proprioception data (default to 0 if missing)
+            value2: rightLegData?.[index] ?? 0, // Right leg proprioception data (default to 0 if missing)
           }));
+          
         }
       );
 
@@ -211,24 +210,29 @@ const Detailreport = (assessment, index, reportData, selected) => {
         switch (selection) {
           case "Active":
             // Handle selected exercise data for Active
-            const leftLegActive = exerciseData["left-leg-active"][0] || [];
-            const rightLegActive = exerciseData["right-leg-active"][0] || [];
+            const leftLegActive = exerciseData?.["left-leg-active"]?.[0] ?? [];
+            const rightLegActive =
+              exerciseData?.["right-leg-active"]?.[0] ?? [];
+
             const activeData = leftLegActive.map((value, index) => ({
               name: `${index + 1}`,
               value1: value, // Left leg active data
-              value2: rightLegActive[index] || 0, // Right leg active data (0 if no data available)
+              value2: rightLegActive[index] ?? 0, // Right leg active data (0 if no data available)
             }));
             setChartData(activeData);
             break;
 
           case "Passive":
             // Handle selected exercise data for Passive
-            const leftLegPassive = exerciseData["left-leg-passive"][0] || [];
-            const rightLegPassive = exerciseData["right-leg-passive"][0] || [];
+            const leftLegPassive =
+              exerciseData?.["left-leg-passive"]?.[0] ?? [];
+            const rightLegPassive =
+              exerciseData?.["right-leg-passive"]?.[0] ?? [];
+
             const passiveData = leftLegPassive.map((value, index) => ({
               name: `${index + 1}`,
               value1: value, // Left leg passive data
-              value2: rightLegPassive[index] || 0, // Right leg passive data (0 if no data available)
+              value2: rightLegPassive[index] ?? 0, // Right leg passive data (0 if no data available)
             }));
             setChartData(passiveData);
             setSelectedExerciseData(passiveData); // Update state with passive data
@@ -553,14 +557,14 @@ const Detailreport = (assessment, index, reportData, selected) => {
           const exerciseData = assessment.assessment.exercises["Mobility Test"];
           setExerciseName(exerciseName);
           // Access only the first array of leftleg and rightleg
-          const leftLegData = exerciseData.leftleg[0] || [];
-          const rightLegData = exerciseData.rightleg[0] || [];
+          const leftLegData = exerciseData.leftleg[0] ?? [];
+          const rightLegData = exerciseData.rightleg[0] ?? [];
 
           // Map the first arrays of leftleg and rightleg to their respective data points
           selectedExerciseData = leftLegData.map((value, index) => ({
             name: `${index + 1}`,
             value1: value, // Left leg data
-            value2: rightLegData[index] || 0, // Right leg data (0 if no data available)
+            value2: rightLegData[index] ?? 0, // Right leg data (0 if no data available)
           }));
 
           break;
@@ -570,14 +574,15 @@ const Detailreport = (assessment, index, reportData, selected) => {
           console.log(extensionLagData);
           setDrawerItems({
             Active: {
-              leftLegData: extensionLagData["left-leg-active"][0] || [],
-              rightLegData: extensionLagData["right-leg-active"][0] || [],
+              leftLegData: extensionLagData?.["left-leg-active"]?.[0] ?? [],
+              rightLegData: extensionLagData?.["right-leg-active"]?.[0] ?? [],
             },
             Passive: {
-              leftLegData: extensionLagData["left-leg-passive"][0] || [],
-              rightLegData: extensionLagData["right-leg-passive"][0] || [],
+              leftLegData: extensionLagData?.["left-leg-passive"]?.[0] ?? [],
+              rightLegData: extensionLagData?.["right-leg-passive"]?.[0] ?? [],
             },
           });
+
           setSelectedExerciseData(selectedExerciseData);
           break;
         case "Dynamic Balance Test":
@@ -721,16 +726,16 @@ const Detailreport = (assessment, index, reportData, selected) => {
           setExerciseName(exerciseName);
           // Access only the first array of leftleg and rightleg
           const leftLegProprioceptionData =
-            proprioceptionData["leftleg"][0] || []; // First array of left leg data
+            proprioceptionData["leftleg"][0] ?? []; // First array of left leg data
           const rightLegProprioceptionData =
-            proprioceptionData["rightleg"][0] || []; // First array of right leg data
+            proprioceptionData["rightleg"][0] ?? []; // First array of right leg data
 
           // Map the data for leftleg and rightleg
           selectedExerciseData = leftLegProprioceptionData.map(
             (value, index) => ({
               name: `Point ${index + 1}`,
               value1: value, // Left leg proprioception data
-              value2: rightLegProprioceptionData[index] || 0, // Right leg proprioception data (0 if no data available)
+              value2: rightLegProprioceptionData[index] ?? 0, // Right leg proprioception data (0 if no data available)
             })
           );
           break;
@@ -775,8 +780,8 @@ const Detailreport = (assessment, index, reportData, selected) => {
 
           // Iterate through each cycle and pass both left and right leg data together as a whole
           for (let i = 1; i <= totalCount; i++) {
-            const leftLegData = gaitCycles[i]?.leftLegData || [];
-            const rightLegData = gaitCycles[i]?.rightLegData || [];
+            const leftLegData = gaitCycles[i]?.leftLegData ?? [];
+            const rightLegData = gaitCycles[i]?.rightLegData ?? [];
 
             // Combine the left and right leg data for the current cycle and pass as a whole
             if (leftLegData.length > 0 && rightLegData.length > 0) {
@@ -830,23 +835,23 @@ const Detailreport = (assessment, index, reportData, selected) => {
     ) {
       // Extract Proprioception Test data
       const proprioceptionData = exercises["Proprioception Test"];
-  
+
       // Map leftleg and rightleg values
       const leftleg = proprioceptionData.leftleg.map((arr) => arr[0]); // Extract first values
       const rightleg = proprioceptionData.rightleg.map((arr) => arr[0]); // Extract first values
-  
+
       // Prepare data for left leg (for chart 1)
       const leftlegData = leftleg.map((value, index) => ({
         name: `Point ${index + 1}`,
         value, // Value for left leg
       }));
-  
+
       // Prepare data for right leg (for chart 2)
       const rightlegData = rightleg.map((value, index) => ({
         name: `Point ${index + 1}`,
         value, // Value for right leg
       }));
-  
+
       // Return separate data for left leg and right leg to be used individually in separate charts
       return { leftlegData, rightlegData };
     } else {
@@ -854,7 +859,6 @@ const Detailreport = (assessment, index, reportData, selected) => {
       return { leftlegData: [], rightlegData: [] };
     }
   }
-  
 
   const data = [
     {
@@ -914,11 +918,10 @@ const Detailreport = (assessment, index, reportData, selected) => {
   }
 
   // Example usage
-  if(assessment.selected === "assessment"){
-  LegData = processData(assessment);
-  console.log(chartData);
-  }else{
-
+  if (assessment.selected === "assessment") {
+    LegData = processData(assessment);
+    console.log(chartData);
+  } else {
   }
   useEffect(() => {
     if (assessment.selected === "model_recovery") {

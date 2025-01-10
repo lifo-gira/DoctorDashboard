@@ -560,7 +560,7 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
               </div>
             </div>
           </div>
-          <div className="w-full h-[60%] mt-20  rounded-xl pt-4 px-4 ">
+          <div className="w-full h-[60%] mt-20  rounded-xl pt-4 px-4">
             <div className="flex flex-row justify-between">
               <p className="text-black text-lg font-poppins font-semibold">
                 Patients Assigned
@@ -574,75 +574,78 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
                 <ChevronRightIcon className="w-4 h-4 text-cyan-300" />
               </div>
             </div>
-            <div className="max-h-[60vh] overflow-y-scroll">
-            {patients.map((patient) => (
-              <div
-                key={patient._id}
-                className="w-full bg-[#F3F0FF] rounded-lg flex flex-row justify-between items-center my-1 py-2 px-3 mt-6 "
-              >
-                <div className="w-3/6 ">
-                  <div className="flex flex-row gap-4 py-0 px-2 items-center">
-                    <img
-                      className="w-10 h-10 rounded-full"
-                      src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
-                      alt={patient.user_id}
-                    />
-                    <div className="flex w-full flex-col">
-                      <div className="flex items-center justify-between">
-                        <p className="text-[#475467] font-poppins font-medium text-base">
-                          {patient.user_id}
-                        </p>
-                      </div>
-                      <p className="text-start font-poppins font-medium text-sm text-[#475467]">
-                        {patient.PersonalDetails.Age},{" "}
-                        {patient.PersonalDetails.Gender}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+            <div className="h-[80%] overflow-y-scroll pb-4">
+  {patients.length > 0 ? (
+    patients.map((patient) => (
+      <div
+        key={patient._id}
+        className="w-full bg-[#F3F0FF] rounded-lg flex flex-row justify-between items-center my-1 py-2 px-3 mt-6"
+      >
+        <div className="w-3/6 ">
+          <div className="flex flex-row gap-4 py-0 px-2 items-center">
+            <img
+              className="w-10 h-10 rounded-full"
+              src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
+              alt={patient.user_id}
+            />
+            <div className="flex w-full flex-col">
+              <div className="flex items-center justify-between">
+                <p className="text-[#475467] font-poppins font-medium text-base">
+                  {patient.user_id}
+                </p>
+              </div>
+              <p className="text-start font-poppins font-medium text-sm text-[#475467]">
+                {patient.PersonalDetails.Age}, {patient.PersonalDetails.Gender}
+              </p>
+            </div>
+          </div>
+        </div>
 
-                <div className="w-1/6 text-sm font-normal font-poppins text-[#475467] text-center">
-                  ID: {patient.unique_id}
-                </div>
+        <div className="w-1/6 text-sm font-normal font-poppins text-[#475467] text-center">
+          ID: {patient.unique_id}
+        </div>
 
-                {/* Updated Additional Info Section */}
-                <div className="w-1/6">
-                  <div className="bg-[#BAE5F6] text-[#0D3CB7] rounded-lg px-2 py-1 text-sm text-center">
-                    {patient.PersonalDetails.pain_indication.map(
-                      (report, index) => (
-                        <div key={index}>
-                          {report && (
-                            <div>
-                              <span>{report}</span>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    )}
+        <div className="w-1/6">
+          <div className="bg-[#BAE5F6] text-[#0D3CB7] rounded-lg px-2 py-1 text-sm text-center">
+            {patient.PersonalDetails.pain_indication.map((report, index) => (
+              <div key={index}>
+                {report && (
+                  <div>
+                    <span>{report}</span>
                   </div>
-                </div>
-
-                <div className="w-1/6 flex flex-row justify-end items-center">
-                  <div
-                    className="flex flex-row gap-1 items-center"
-                    onClick={() => {
-                      setCurrentPage("reports"); // Set the current page to reports
-                      toReportPage(patient); // Pass the mapped patient data here
-                      console.log(patient); // For debugging, you can remove this later
-                    }}
-                  >
-                    <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
-                      Report
-                    </div>
-                    <ArrowUpRightIcon
-                      color="blue"
-                      className="w-4 h-4 cursor-pointer"
-                    />
-                  </div>
-                </div>
+                )}
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="w-1/6 flex flex-row justify-end items-center">
+          <div
+            className="flex flex-row gap-1 items-center"
+            onClick={() => {
+              setCurrentPage("reports"); // Set the current page to reports
+              toReportPage(patient); // Pass the mapped patient data here
+              console.log(patient); // For debugging, you can remove this later
+            }}
+          >
+            <div className="text-sm font-medium border-b-2 text-[#476367] border-blue-gray-500 cursor-pointer">
+              Report
             </div>
+            <ArrowUpRightIcon
+              color="blue"
+              className="w-4 h-4 cursor-pointer"
+            />
+          </div>
+        </div>
+      </div>
+    ))
+  ) : (
+    <div className="text-center text-[#475467] font-poppins font-medium mt-6">
+      No patients assigned
+    </div>
+  )}
+</div>
+
           </div>
         </div>
         <div className="w-[45%] bg-slate-300">
