@@ -153,24 +153,19 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
   };
 
   function processData(reportData) {
-    // Access the last assessment from the array
-    const assessments = reportData.Assessment;
-    const lastAssessment = assessments[assessments.length - 1]; // Get the last assessment
-
-    // Extract Mobility Test data
-    const mobilityTestData = lastAssessment.exercises["Mobility Test"];
-
-    // Map leftleg and rightleg values
-    const leftleg = mobilityTestData.leftleg.map((arr) => arr[0]); // Extract first values
-    const rightleg = mobilityTestData.rightleg.map((arr) => arr[0]); // Extract first values
-
-    // Create chart data with leftleg and rightleg
-    return leftleg.map((value, index) => ({
-      name: `Point ${index + 1}`,
-      leftleg: value,
-      rightleg: rightleg[index] || 0, // Default to 0 if rightleg has fewer values
+    // Define the days of the week
+    const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  
+    // Generate random values for leftleg and rightleg
+    const randomData = daysOfWeek.map((day) => ({
+      name: day,
+      leftleg: Math.floor(Math.random() * 100), // Random value between 0 and 99
+      rightleg: Math.floor(Math.random() * 100), // Random value between 0 and 99
     }));
+  
+    return randomData;
   }
+  
 
   // Example usage after fetching data
   const chartData = processData(reportData);
