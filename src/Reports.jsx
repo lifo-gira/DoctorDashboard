@@ -953,83 +953,92 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
                         <p className="font-poppins font-semibold text-lg text-white">
                           DEFORMITY: VARUS
                         </p>
-                        <div className="bg-white rounded-lg flex flex-col p-2 gap-1 h-24 justify-center">
-                          <p className="font-poppins font-semibold text-base text-[#5F5F5F]">
-                            Tibofemoral Angle
-                          </p>
-                          <div className="flex flex-row justify-between">
-                            <p className="font-poppins font-normal text-lg text-black">
-                              2.58°
-                            </p>
-                            <svg
-                              width="25"
-                              height="25"
-                              viewBox="0 0 25 25"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <g clip-path="url(#clip0_1595_1333)">
-                                <path
-                                  d="M13.9812 8.14148V20.3135H11.9812V8.14148L6.61725 13.5055L5.20325 12.0915L12.9812 4.31348L20.7592 12.0915L19.3452 13.5055L13.9812 8.14148Z"
-                                  fill="#E95D5C"
-                                />
-                              </g>
-                              <defs>
-                                <clipPath id="clip0_1595_1333">
-                                  <rect
-                                    width="24"
-                                    height="24"
-                                    fill="white"
-                                    transform="translate(0.981201 0.313477)"
-                                  />
-                                </clipPath>
-                              </defs>
-                            </svg>
-                          </div>
-                        </div>
-                        <div className="bg-white rounded-lg flex flex-col p-2 gap-1 h-24 justify-center">
-                          <p className="font-poppins font-semibold text-base text-[#5F5F5F] w-full text-center">
-                            MAD
-                          </p>
-                          <div className="flex flex-row justify-between">
-                            <p className="font-poppins font-normal text-lg text-black">
-                              2.58°
-                            </p>
-                            <svg
-                              width="25"
-                              height="25"
-                              viewBox="0 0 25 25"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <g clip-path="url(#clip0_1595_1333)">
-                                <path
-                                  d="M13.9812 8.14148V20.3135H11.9812V8.14148L6.61725 13.5055L5.20325 12.0915L12.9812 4.31348L20.7592 12.0915L19.3452 13.5055L13.9812 8.14148Z"
-                                  fill="#E95D5C"
-                                />
-                              </g>
-                              <defs>
-                                <clipPath id="clip0_1595_1333">
-                                  <rect
-                                    width="24"
-                                    height="24"
-                                    fill="white"
-                                    transform="translate(0.981201 0.313477)"
-                                  />
-                                </clipPath>
-                              </defs>
-                            </svg>
-                          </div>
-                        </div>
-                        <div className="bg-white rounded-lg flex flex-col p-2 gap-1 h-24 justify-center">
-                          <p className="font-poppins font-semibold text-base text-[#5F5F5F] w-full text-center">
+                        <div className="bg-white rounded-lg flex flex-col p-2 gap-1 h-24 justify-center items-center ">
+                          <p className="font-poppins font-bold text-base text-[#5F5F5F]">
                             HKA
                           </p>
-                          <div className="flex flex-row justify-between">
+                          <div className="flex flex-row justify-between gap-4">
+                            <p className="font-poppins font-normal text-lg text-black">
+                              2.58°
+                            </p>
+                            <p className="font-poppins font-normal text-lg text-black">
+                              2.58°
+                            </p>
+                            {/* <svg
+                              width="25"
+                              height="25"
+                              viewBox="0 0 25 25"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <g clip-path="url(#clip0_1595_1333)">
+                                <path
+                                  d="M13.9812 8.14148V20.3135H11.9812V8.14148L6.61725 13.5055L5.20325 12.0915L12.9812 4.31348L20.7592 12.0915L19.3452 13.5055L13.9812 8.14148Z"
+                                  fill="#E95D5C"
+                                />
+                              </g>
+                              <defs>
+                                <clipPath id="clip0_1595_1333">
+                                  <rect
+                                    width="24"
+                                    height="24"
+                                    fill="white"
+                                    transform="translate(0.981201 0.313477)"
+                                  />
+                                </clipPath>
+                              </defs>
+                            </svg> */}
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-lg flex flex-col p-2 gap-1 h-24 justify-center items-center">
+                          <p className="font-poppins font-bold text-base text-[#5F5F5F] w-full text-center">
+                            LDFA
+                          </p>
+                          <div className="flex flex-row justify-between gap-4">
+                            <p className="font-poppins font-normal text-lg text-black">
+                              2.58°
+                            </p>
+                            <p className="font-poppins font-normal text-lg text-black">
+                              2.58°
+                            </p>
+                            {/* <svg
+                              width="25"
+                              height="25"
+                              viewBox="0 0 25 25"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <g clip-path="url(#clip0_1595_1333)">
+                                <path
+                                  d="M13.9812 8.14148V20.3135H11.9812V8.14148L6.61725 13.5055L5.20325 12.0915L12.9812 4.31348L20.7592 12.0915L19.3452 13.5055L13.9812 8.14148Z"
+                                  fill="#E95D5C"
+                                />
+                              </g>
+                              <defs>
+                                <clipPath id="clip0_1595_1333">
+                                  <rect
+                                    width="24"
+                                    height="24"
+                                    fill="white"
+                                    transform="translate(0.981201 0.313477)"
+                                  />
+                                </clipPath>
+                              </defs>
+                            </svg> */}
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-lg flex flex-col p-2 gap-1 h-24 justify-center items-center">
+                          <p className="font-poppins font-bold text-base text-[#5F5F5F] w-full text-center">
+                            MPTA
+                          </p>
+                          <div className="flex flex-row justify-between gap-4">
                             <p className="font-poppins font-normal text-lg text-black">
                               42.5
                             </p>
-                            <svg
+                            <p className="font-poppins font-normal text-lg text-black">
+                              42.5
+                            </p>
+                            {/* <svg
                               width="25"
                               height="25"
                               viewBox="0 0 25 25"
@@ -1052,7 +1061,7 @@ const Reports = ({ setCurrentPage, reportData, toReportPage }) => {
                                   />
                                 </clipPath>
                               </defs>
-                            </svg>
+                            </svg> */}
                           </div>
                         </div>
                       </div>
