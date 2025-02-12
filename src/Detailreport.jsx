@@ -2152,7 +2152,7 @@ const Detailreport = (assessment, index, reportData, selected) => {
                           <p className="font-poppins font-medium text-black text-sm">
                             {drawerSelectedItem
                               ? `${drawerSelectedItem}`
-                              : "Select Exercise"}
+                              : "Select Mode"}
                           </p>
                           <ChevronDownIcon
                             className={`h-5 w-5 text-[#9CA3AF] transition-transform duration-300 ${

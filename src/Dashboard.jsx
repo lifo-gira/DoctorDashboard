@@ -565,14 +565,14 @@ const Dashboard = ({ setCurrentPage, toReportPage }) => {
               <p className="text-black text-lg font-poppins font-semibold">
                 Patients Assigned
               </p>
-              <div
+              {/* <div
                 className={`flex flex-row gap-1 items-center cursor-pointer`}
               >
                 <p className="text-base text-cyan-300 font-poppins font-medium">
                   View all
                 </p>
                 <ChevronRightIcon className="w-4 h-4 text-cyan-300" />
-              </div>
+              </div> */}
             </div>
             <div className="h-[80%] overflow-y-scroll pb-4">
   {patients.length > 0 ? (
