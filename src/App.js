@@ -277,7 +277,7 @@ const handleLoginchange = async () => {
   });
 
   const handleDownload = () => {
-    window.open(`${process.env.PUBLIC_URL}/inba.exe`, "_self");
+    window.open(`${process.env.PUBLIC_URL}/xolabsdemo.exe`, "_self");
   };
   
   return (
